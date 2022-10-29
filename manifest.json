@@ -1,0 +1,13 @@
+{
+    "name": "Billy Braga's web improvements",
+    "version": "1.0",
+    "description": "Make the web better for me",
+    "manifest_version": 2,
+    "permissions": ["https://music.youtube.com/*"],
+    "content_scripts": [
+        {
+            "matches": ["https://music.youtube.com/*"],
+            "js": ["js/contentScript.js"]
+        }
+    ]
+}
