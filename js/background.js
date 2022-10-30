@@ -12,20 +12,24 @@ function listen() {
     chrome.runtime.onMessage.addListener(function (message) {
         window.postMessage({ type: "FROM_PAGE", text: message }, "*");
     });
-    // chrome.runtime.onMessage.addListener(function (message) {
-    //     window.postMessage({ type: "FROM_PAGE", text: message }, "*");
-    // });
 }
+
+
+chrome.runtime.onMessageExternal.addListener(function (direction) {
+    chrome.tabs.query({ url: "https://music.youtube.com/*" }, function (tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, { direction });
+    });
+});
 
 chrome.commands.onCommand.addListener(function (command) {
     const direction = command.split('-')[1];
 
-    // chrome.runtime.sendMessage(
-    //     "cjghcgofiliplfppegnjnnoigmphhmnd",
-    //     {command},
-    //     function (response) {
-    //     }
-    // );
+    chrome.runtime.sendMessage(
+        "cjghcgofiliplfppegnjnnoigmphhmnd",
+        {command},
+        function (response) {
+        }
+    );
 
     chrome.tabs.query({ url: "https://music.youtube.com/*" }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, { direction });
