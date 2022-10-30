@@ -2,12 +2,32 @@
     "name": "Billy Braga's web improvements",
     "version": "1.0",
     "description": "Make the web better for me",
-    "manifest_version": 2,
-    "permissions": ["https://music.youtube.com/*"],
-    "content_scripts": [
+    "manifest_version": 3,
+    "host_permissions": ["https://music.youtube.com/*"],
+    "permissions": ["scripting", "tabs"],
+    "web_accessible_resources": [
         {
-            "matches": ["https://music.youtube.com/*"],
-            "js": ["js/contentScript.js"]
+            "resources": [ "js/ytm.js" ],
+            "matches": [ "https://music.youtube.com/*" ]
         }
-    ]
+    ],
+    "commands": {
+        "volume-down": {
+            "suggested_key": {
+                "default": "Alt+Shift+Left",
+                "mac": "Alt+Left"
+            },
+            "description": "Youtube Music volume down"
+        },
+        "volume-up": {
+            "suggested_key": {
+                "default": "Alt+Shift+Right",
+                "mac": "Alt+Right"
+            },
+            "description": "Youtube Music volume up"
+        }
+    },
+    "background": {
+        "service_worker": "js/background.js"
+    }
 }
