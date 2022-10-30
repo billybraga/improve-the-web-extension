@@ -11,6 +11,9 @@
             "matches": [ "https://music.youtube.com/*" ]
         }
     ],
+    "externally_connectable": {
+        "matches": ["https://stackoverflow.com/*"]
+    },
     "commands": {
         "volume-down": {
             "suggested_key": {
