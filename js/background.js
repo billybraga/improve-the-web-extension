@@ -8,31 +8,25 @@ function loadYtm() {
 }
 
 function listen() {
-    console.info("Listen messages")
-    chrome.runtime.onMessage.addListener(function (message) {
-        window.postMessage({ type: "FROM_PAGE", text: message }, "*");
-    });
+    if (!window.__ytmMessageListenSet) {
+        window.__ytmMessageListenSet = true;
+        console.info("Listening messages in tab within bg context");
+        chrome.runtime.onMessage.addListener(function (message) {
+            console.info("Received message in tab within bg context");
+            window.postMessage({ type: "volume_change", message: message }, "*");
+        });
+    }
 }
-
-
-chrome.runtime.onMessageExternal.addListener(function (direction) {
-    chrome.tabs.query({ url: "https://music.youtube.com/*" }, function (tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, { direction });
-    });
-});
 
 chrome.commands.onCommand.addListener(function (command) {
     const direction = command.split('-')[1];
 
-    chrome.runtime.sendMessage(
-        "cjghcgofiliplfppegnjnnoigmphhmnd",
-        {command},
-        function (response) {
-        }
-    );
-
+    console.info("Received command in bg", command);
     chrome.tabs.query({ url: "https://music.youtube.com/*" }, function (tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, { direction });
+        tabs.forEach(tab => {
+            console.info("Sending command in to tab", tab.id, command);
+            chrome.tabs.sendMessage(tab.id, { direction });
+        });
     });
 });
 

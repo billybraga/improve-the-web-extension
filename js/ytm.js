@@ -7,7 +7,7 @@ if (!window.__ytmLoaded) {
     console.info("Loaded fading");
 
     const fadeTime = 700;
-    const volDelta = 5;
+    const volDelta = 3;
     const playBtn = document.getElementById("play-pause-button");
 
     let playerApi = document.getElementById("player").playerApi_;
@@ -79,14 +79,14 @@ if (!window.__ytmLoaded) {
           return;
         }
       
-        if (event.data.type && (event.data.type == "FROM_PAGE")) {
-            console.log("Content script received: " + event.data.text);
-            handleVolumeCommand(event.data.text);
+        if (event.data.type && (event.data.type == "volume_change")) {
+            console.log("Content script received", event.data);
+            const { direction } = event.data.message;
+            handleVolumeCommand(direction);
         }
       }, false);
 
-    function handleVolumeCommand(message) {
-        const { direction } = message;
+    function handleVolumeCommand(direction) {
         let volume = playerApi.getVolume();
         const unit = direction === 'down' ? -1 : 1;
         const newVol = Math.min(100, Math.max(0, volume + (unit * volDelta)));
