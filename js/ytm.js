@@ -7,36 +7,49 @@ if (!window.__ytmLoaded) {
     console.info("Loaded fading");
 
     const fadeTime = 700;
+    const steps = 30;
     const volDelta = 1;
     const playBtn = document.getElementById("play-pause-button");
-
+    const videoTag = document.getElementsByTagName("video")[0];
     const playerApi = document.getElementById("player").playerApi_;
     const volumeSlider = document.getElementById('volume-slider');
     let targetVolume = 50;
 
-    const setVolume = (newVolume) => {
-        console.info("Setting volume", newVolume);
+    const setVidTagVolume = (newVolume) => {
+        console.info("Setting tag volume", newVolume);
+        videoTag.volume = newVolume / 100;
+    };
+
+    const setApiVolume = (newVolume) => {
+        console.info("Setting api volume", newVolume);
         playerApi.setVolume(newVolume);
         volumeSlider.value = newVolume;
     };
 
+    const oldVolStr = localStorage["__ytmVol"];
+    if (oldVolStr) {
+        setApiVolume(parseFloat(oldVolStr));
+    }
+
     const fade = (dir, dest, cb) => {
-        let startVolume = playerApi.getVolume();
-        // Change 1% at a time, so calculate steps to take fadeTime in total
-        let deltaTimeForChange = fadeTime / Math.abs(dest - startVolume);
-        console.info("Will set volume to " + dest + " in " + deltaTimeForChange + " ms");
+        const startVolume = playerApi.getVolume();
+        const delta = Math.abs(dest - startVolume) / steps;
+        // 30 steps
+        const deltaTimeForChange = fadeTime / steps;
+        console.info("Will set volume to " + dest + " in " + steps + " " + deltaTimeForChange + "ms / " + delta + "% steps");
         
         innerFade();
         
         function innerFade() {
-            let volume = playerApi.getVolume();
-            if ((dir === -1 && volume <= dest) || (dir === 1 && volume >= dest)) {
-                console.info("Set volume", volume);
+            let tagVol = videoTag.volume * 100;
+            if ((dir === -1 && tagVol <= dest) || (dir === 1 && tagVol >= dest)) {
+                setApiVolume(tagVol);
+                console.info("Set volume", tagVol);
                 cb();
                 return;
             }
-            let newVolume = volume + (dir);
-            setVolume(newVolume);
+            let newVolume = Math.max(0, tagVol + (dir * delta));
+            setVidTagVolume(newVolume);
             setTimeout(innerFade, deltaTimeForChange);
         }
     };
@@ -55,13 +68,13 @@ if (!window.__ytmLoaded) {
                     () => {
                         playerApi.pauseVideo()
                         // put volume back
-                        setVolume(targetVolume);
+                        setApiVolume(targetVolume);
                     }
                 );
             } else {
                 console.info("Will trigger play and fade");
                 // always start at zero when playing
-                setVolume(0);
+                setApiVolume(0);
                 // press play
                 playerApi.playVideo();
                 fade(
@@ -91,7 +104,8 @@ if (!window.__ytmLoaded) {
         let volume = playerApi.getVolume();
         const unit = direction === 'down' ? -1 : 1;
         const newVol = Math.min(100, Math.max(0, volume + (unit * volDelta)));
-        setVolume(newVol);
+        setApiVolume(newVol);
+        localStorage["__ytmVol"] = newVol.toString();
     }
     
     console.info("Loaded shortcuts");
