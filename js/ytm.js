@@ -7,15 +7,17 @@ if (!window.__ytmLoaded) {
     console.info("Loaded fading");
 
     const fadeTime = 700;
-    const volDelta = 3;
+    const volDelta = 1;
     const playBtn = document.getElementById("play-pause-button");
 
-    let playerApi = document.getElementById("player").playerApi_;
+    const playerApi = document.getElementById("player").playerApi_;
+    const volumeSlider = document.getElementById('volume-slider');
     let targetVolume = 50;
 
     const setVolume = (newVolume) => {
         console.info("Setting volume", newVolume);
         playerApi.setVolume(newVolume);
+        volumeSlider.value = newVolume;
     };
 
     const fade = (dir, dest, cb) => {
@@ -28,7 +30,7 @@ if (!window.__ytmLoaded) {
         
         function innerFade() {
             let volume = playerApi.getVolume();
-            if ((dir == -1 && volume <= dest) || (dir == 1 && volume >= dest)) {
+            if ((dir === -1 && volume <= dest) || (dir === 1 && volume >= dest)) {
                 console.info("Set volume", volume);
                 cb();
                 return;
@@ -36,7 +38,7 @@ if (!window.__ytmLoaded) {
             let newVolume = volume + (dir);
             setVolume(newVolume);
             setTimeout(innerFade, deltaTimeForChange);
-        };
+        }
     };
 
     playBtn.addEventListener(
@@ -45,7 +47,7 @@ if (!window.__ytmLoaded) {
             e.stopImmediatePropagation();
             targetVolume = playerApi.getVolume();
             // 1 is play, 2 is pause
-            if (playerApi.getPlayerState() == 1) {
+            if (playerApi.getPlayerState() === 1) {
                 console.info("Will trigger pause after fade");
                 fade(
                     -1,
@@ -72,14 +74,13 @@ if (!window.__ytmLoaded) {
         true
     );
 
-
     window.addEventListener("message", (event) => {
         // We only accept messages from ourselves
-        if (event.source != window) {
+        if (event.source !== window) {
           return;
         }
       
-        if (event.data.type && (event.data.type == "volume_change")) {
+        if (event.data.type && (event.data.type === "volume_change")) {
             console.log("Content script received", event.data);
             const { direction } = event.data.message;
             handleVolumeCommand(direction);
