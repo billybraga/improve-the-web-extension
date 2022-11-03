@@ -3,28 +3,51 @@
     "version": "1.0",
     "description": "Make the web better for me",
     "manifest_version": 3,
-    "host_permissions": ["https://music.youtube.com/*"],
-    "permissions": ["scripting", "tabs"],
+    "host_permissions": [
+        "https://music.youtube.com/*"
+    ],
+    "permissions": [
+        "scripting",
+        "tabs",
+        "notifications"
+    ],
+    "externally_connectable": {
+        "matches": [
+            "https://music.youtube.com/*"
+        ]
+    },
     "web_accessible_resources": [
         {
-            "resources": [ "js/ytm.js" ],
-            "matches": [ "https://music.youtube.com/*" ]
+            "resources": [
+                "js/ytm.js",
+                "img/favicon_144.png"
+            ],
+            "matches": [
+                "https://music.youtube.com/*"
+            ]
         }
     ],
     "commands": {
-        "volume-down": {
+        "volume_change-down": {
             "suggested_key": {
                 "default": "Alt+Shift+Left",
-                "mac": "Alt+Left"
+                "mac": "Alt+Shift+Left"
             },
             "description": "Youtube Music volume down"
         },
-        "volume-up": {
+        "volume_change-up": {
             "suggested_key": {
                 "default": "Alt+Shift+Right",
-                "mac": "Alt+Right"
+                "mac": "Alt+Shift+Right"
             },
             "description": "Youtube Music volume up"
+        },
+        "play_pause": {
+            "suggested_key": {
+                "default": "MediaPlayPause",
+                "mac": "MediaPlayPause"
+            },
+            "description": "Youtube play/pause"
         }
     },
     "background": {
