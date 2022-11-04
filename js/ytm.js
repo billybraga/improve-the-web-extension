@@ -98,7 +98,7 @@ if (!window.__ytmLoaded) {
         if (event.data.type) {
             console.log("Content script received", event.data);
             let notif = {
-                type: "progress",
+                type: "basic",
                 title: "Youtube Music"
             };
             if (event.data.type === "volume_change") {
@@ -108,6 +108,8 @@ if (!window.__ytmLoaded) {
                 notif.progress = newVolInt;
                 notif.type = "progress";
             } else if (event.data.type === "play_pause") {
+                notif.progress = playerApi.getVolume();
+                notif.type = "progress";
                 playBtn.click();
                 // 1 is play, 2 is pause
                 if (playerApi.getPlayerState() === 1) {
