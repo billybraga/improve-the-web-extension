@@ -1,7 +1,7 @@
 function loadYtm() {
     var s = document.createElement('script');
     s.src = chrome.runtime.getURL('js/ytm.js');
-    s.onload = function() {
+    s.onload = function () {
         this.remove();
     };
     (document.head || document.documentElement).appendChild(s);
@@ -27,38 +27,58 @@ function listen() {
 }
 
 const notifTimeMs = 2000;
-let notifTimeoutIds = {};
+let notifs = {};
 chrome.runtime.onMessage.addListener(function (message) {
     if (message.type === "notif") {
-        const notifId = "__yt_" + message.notifType;
-        if (notifTimeoutIds[notifId]) {
-            console.log("Update notif", message.notifMessage);
-            clearTimeout(notifTimeoutIds[notifId]);
+        const notifId = message.notifId;
+        const notifOptions = message.notif;
+        const scheduleClear = () => {
+            if (notifs[notifId].clearTimeoutId) {
+                clearTimeout(notifs[notifId].clearTimeoutId);
+            }
+            notifs[notifId].clearTimeoutId = setTimeout(clear, notifTimeMs);
+        };
+        const clear = (callback) => {
+            notifs[notifId] = null;
+            console.log("Clear notif", notifId);
+            chrome.notifications.clear(
+                notifId,
+                x => {
+                    console.log("Clear callback", x, notifId);
+                    if (callback) {
+                        callback();
+                    }
+                }
+            );
+        };
+        if (notifs[notifId] && notifs[notifId].created) {
+            console.log("Update notif", notifId, message.notif);
+            scheduleClear();
             chrome.notifications.update(
                 notifId,
-                {
-                    message: message.notifMessage
-                }
+                notifOptions
             );
         } else {
-            console.log("Create notif", message.notifMessage);
-            chrome.notifications.create(
-                notifId,
-                {
-                    type: "basic",
-                    silent: true,
-                    iconUrl: "/img/favicon_144.png",
-                    title: message.notifTitle,
-                    message: message.notifMessage
-                }
-            );
-        }
+            const doCreate = () => {
+                notifs[notifId] = {created: true};
+                scheduleClear();
+                notifOptions.iconUrl = "/img/favicon_144.png";
+                notifOptions.silent = true;
+                console.log("Create notif", notifId, notifOptions);
+                chrome.notifications.create(
+                    notifId,
+                    notifOptions
+                );
+            };
 
-        notifTimeoutIds[notifId] = setTimeout(() => {
-            notifTimeoutIds[notifId] = null;
-            console.log("Clear notif");
-            chrome.notifications.clear(notifId, x => console.log("Clear callback", x));
-        }, notifTimeMs);
+            if (notifs[notifId]) {
+                clearTimeout(notifs[notifId].createTimeoutId);
+            }
+
+            notifs[notifId] = {
+                createTimeoutId: setTimeout(doCreate, 500)
+            };
+        }
     }
 });
 
@@ -68,14 +88,14 @@ chrome.commands.onCommand.addListener(function (command) {
     const arg = parts[1];
 
     console.info("Received command in bg", command);
-    const message = { type: type, arg, destination: "content" };
-    chrome.tabs.query({ url: "https://music.youtube.com/*" }, function (tabs) {
+    const message = {type: type, arg, destination: "content"};
+    chrome.tabs.query({url: "https://music.youtube.com/*"}, function (tabs) {
         tabs.forEach(tab => {
             console.info("Sending command in to tab", tab.id, message);
             chrome.tabs.sendMessage(tab.id, message);
         });
     });
-    chrome.tabs.query({ url: "https://youtube.com/*" }, function (tabs) {
+    chrome.tabs.query({url: "https://youtube.com/*"}, function (tabs) {
         tabs.forEach(tab => {
             console.info("Sending command in to tab", tab.id, message);
             chrome.tabs.sendMessage(tab.id, message);

@@ -17,7 +17,7 @@ if (!window.__ytmLoaded) {
 
     const setVidTagVolume = (newVolume) => {
         console.info("Setting tag volume", newVolume);
-        videoTag.volume = newVolume / 100;
+        videoTag.volume = Math.min(1, newVolume / 100);
     };
 
     const setApiVolume = (newVolume) => {
@@ -97,29 +97,32 @@ if (!window.__ytmLoaded) {
 
         if (event.data.type) {
             console.log("Content script received", event.data);
-            let notifTitle;
-            let notifMessage;
+            let notif = {
+                type: "progress",
+                title: "Youtube Music"
+            };
             if (event.data.type === "volume_change") {
                 const newVol = handleVolumeCommand(event.data.arg);
-
-                notifTitle = "YTM volume change";
-                notifMessage = newVol.toFixed(0) + "%";
+                const newVolInt = Math.round(newVol);
+                notif.message = "Volume " + event.data.arg;
+                notif.progress = newVolInt;
+                notif.type = "progress";
             } else if (event.data.type === "play_pause") {
                 playBtn.click();
-                notifTitle = "YTM state change";
                 // 1 is play, 2 is pause
                 if (playerApi.getPlayerState() === 1) {
-                    notifMessage = "Pause";
+                    notif.message = "Pause";
                 } else {
-                    notifMessage = "Play";
+                    notif.message = "Play";
                 }
             }
+
+            const notifId = event.data.type;
             window.postMessage(
                 {
                     type: "notif",
-                    notifType: event.data.type,
-                    notifMessage,
-                    notifTitle,
+                    notifId: notifId,
+                    notif,
                     destination: "extension"
                 });
         }
