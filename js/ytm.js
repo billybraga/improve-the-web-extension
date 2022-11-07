@@ -1,6 +1,14 @@
 if (!window.__ytmLoaded) {
     window.__ytmLoaded = true;
 
+    const debugLogs = false;
+
+    function logDebug() {
+        if (debugLogs) {
+            console.log.apply(console, arguments);
+        }
+    }
+
     console.info("Loaded theme");
     document.head.querySelector("meta[name=theme-color]").content = "#fff"
 
@@ -16,12 +24,12 @@ if (!window.__ytmLoaded) {
     let targetVolume = 50;
 
     const setVidTagVolume = (newVolume) => {
-        console.info("Setting tag volume", newVolume);
+        logDebug("Setting tag volume", newVolume);
         videoTag.volume = Math.min(1, newVolume / 100);
     };
 
     const setApiVolume = (newVolume) => {
-        console.info("Setting api volume", newVolume);
+        logDebug("Setting api volume", newVolume);
         playerApi.setVolume(newVolume);
         volumeSlider.value = newVolume;
     };
@@ -101,12 +109,14 @@ if (!window.__ytmLoaded) {
                 type: "basic",
                 title: "Youtube Music"
             };
+            let instant = true;
             if (event.data.type === "volume_change") {
                 const newVol = handleVolumeCommand(event.data.arg);
                 const newVolInt = Math.round(newVol);
                 notif.message = "Volume " + event.data.arg;
                 notif.progress = newVolInt;
                 notif.type = "progress";
+                instant = false;
             } else if (event.data.type === "play_pause") {
                 notif.progress = playerApi.getVolume();
                 notif.type = "progress";
@@ -125,7 +135,8 @@ if (!window.__ytmLoaded) {
                     type: "notif",
                     notifId: notifId,
                     notif,
-                    destination: "extension"
+                    destination: "extension",
+                    instant
                 });
         }
     }, false);

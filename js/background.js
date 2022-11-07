@@ -76,7 +76,7 @@ chrome.runtime.onMessage.addListener(function (message) {
             }
 
             notifs[notifId] = {
-                createTimeoutId: setTimeout(doCreate, 500)
+                createTimeoutId: setTimeout(doCreate, message.instant ? 0 : 500)
             };
         }
     }
