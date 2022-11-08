@@ -48,6 +48,20 @@
                 "mac": "MediaPlayPause"
             },
             "description": "Youtube play/pause"
+        },
+        "track-prev": {
+            "suggested_key": {
+                "default": "MediaPrevTrack",
+                "mac": "MediaPrevTrack"
+            },
+            "description": "Youtube previous track"
+        },
+        "track-next": {
+            "suggested_key": {
+                "default": "MediaNextTrack",
+                "mac": "MediaNextTrack"
+            },
+            "description": "Youtube next track"
         }
     },
     "background": {

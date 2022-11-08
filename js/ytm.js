@@ -127,6 +127,12 @@ if (!window.__ytmLoaded) {
                 } else {
                     notif.message = "Play";
                 }
+            } else if (event.data.type === "track") {
+                if (event.data.arg === "next") {
+                    playerApi.nextVideo();
+                } else if (event.data.arg === "prev") {
+                    playerApi.previousVideo();
+                }
             }
 
             const notifId = event.data.type;
