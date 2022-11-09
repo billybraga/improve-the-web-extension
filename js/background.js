@@ -32,10 +32,11 @@ function createAppSpec(host, supportedCommandTypes, hasScript, hasCss) {
 /**
  * @param {string} url
  * @param {boolean} hasScript
+ * @param {boolean} hasCss
  * @returns {AppSpec}
  */
-function createMediaAppSpec(url, hasScript) {
-    return createAppSpec(url, ["volume_change", "play_pause", "track"], hasScript);
+function createMediaAppSpec(url, hasScript, hasCss) {
+    return createAppSpec(url, ["volume_change", "play_pause", "track"], hasScript, hasCss);
 }
 
 function loadScript() {
@@ -80,10 +81,11 @@ function listen() {
 // Variables
 
 const appSpecs = [
-    createMediaAppSpec("music.youtube.com", 'ytm'),
-    createMediaAppSpec("youtube.com"),
+    createMediaAppSpec("music.youtube.com", true, true),
+    createMediaAppSpec("youtube.com", false, true),
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
+    createAppSpec("dev.azure.com", [], true, true),
 ];
 const notifTimeMs = 2000;
 let notifs = {};

@@ -1,0 +1,10 @@
+.ansifg-c {
+    color: #35707f;
+}
+.ansifg-bl {
+    color: #37668a;
+}
+
+.wit-card:focus-within .card-context-menu {
+    visibility: hidden;
+}

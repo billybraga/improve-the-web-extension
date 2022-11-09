@@ -6,7 +6,9 @@
     "host_permissions": [
         "https://music.youtube.com/*",
         "https://clients.nethris.com/*",
-        "https://www.google.com/*"
+        "https://www.google.com/*",
+        "https://www.youtube.com/*",
+        "https://dev.azure.com/*"
     ],
     "permissions": [
         "scripting",
@@ -22,15 +24,21 @@
         {
             "resources": [
                 "js/music.youtube.com.js",
+                "css/music.youtube.com.css",
                 "js/clients.nethris.com.js",
                 "css/clients.nethris.com.css",
                 "css/www.google.com.css",
+                "css/www.youtube.com.css",
+                "css/dev.azure.com.css",
+                "js/dev.azure.com.js",
                 "img/favicon_144.png"
             ],
             "matches": [
                 "https://music.youtube.com/*",
+                "https://www.youtube.com/*",
                 "https://clients.nethris.com/*",
-                "https://www.google.com/*"
+                "https://www.google.com/*",
+                "https://dev.azure.com/*"
             ]
         }
     ],
