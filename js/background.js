@@ -3,6 +3,7 @@
 /**
  * @typedef AppSpec
  * @property {string} url
+ * @property {string} host
  * @property {string[]} supportedCommandTypes
  * @property {boolean} hasScript
  * @property {boolean} hasCss
@@ -21,6 +22,7 @@
 function createAppSpec(host, supportedCommandTypes, hasScript, hasCss) {
     return {
         url: "https://" + host,
+        host,
         supportedCommandTypes: supportedCommandTypes,
         hasScript,
         hasCss
@@ -166,7 +168,7 @@ chrome.commands.onCommand.addListener(function (command) {
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    if (changeInfo.status !== 'complete' || !tab.active) {
+    if (!tab.active) {
         return;
     }
 
@@ -175,22 +177,40 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         return;
     }
 
-    if (app.hasScript) {
-        chrome.scripting.executeScript({
-            target: {tabId},
-            func: loadScript,
-        });
+    if (changeInfo.status === 'complete') {
+        if (app.hasScript) {
+            chrome.scripting.executeScript(
+                {
+                    target: {tabId},
+                    func: loadScript,
+                },
+                () => {
+                    console.log('added js for ' + app.host)
+                });
+        }
+        if (app.supportedCommandTypes.length) {
+            chrome.scripting.executeScript(
+                {
+                    target: {tabId},
+                    func: listen,
+                }, () => {
+                    console.log('added listen for ' + app.host)
+                }
+            );
+        }
     }
-    if (app.hasCss) {
-        chrome.scripting.executeScript({
-            target: {tabId},
-            func: loadCss,
-        });
-    }
-    if (app.supportedCommandTypes.length) {
-        chrome.scripting.executeScript({
-            target: {tabId},
-            func: listen
-        });
+
+    if (changeInfo.status === 'loading') {
+        if (app.hasCss) {
+            chrome.scripting.insertCSS(
+                {
+                    target: {tabId},
+                    files: ["css/" + app.host + ".css"],
+                },
+                () => {
+                    console.log('added css for ' + app.host)
+                }
+            );
+        }
     }
 });
