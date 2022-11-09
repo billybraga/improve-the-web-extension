@@ -19,7 +19,7 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "js/ytm.js",
+                "js/music.youtube.com.js",
                 "img/favicon_144.png"
             ],
             "matches": [

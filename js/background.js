@@ -1,6 +1,41 @@
-function loadYtm() {
+/**
+ * @typedef AppSpec
+ * @property {string} url
+ * @property {string[]} supportedCommandTypes
+ * @property {boolean} hasScript
+ */
+
+/**
+ * @param {string} url
+ * @param {string[]} supportedCommandTypes
+ * @param {boolean} hasScript
+ * @returns {AppSpec}
+ */
+function createAppSpec(url, supportedCommandTypes, hasScript) {
+    return {
+        url: url,
+        supportedCommandTypes: supportedCommandTypes,
+        hasScript,
+    };
+}
+
+/**
+ * @param {string} url
+ * @param {boolean} hasScript
+ * @returns {AppSpec}
+ */
+function createMediaAppSpec(url, hasScript) {
+    return createAppSpec(url, ["volume_change", "play_pause", "track"], hasScript);
+}
+
+const appSpecs = [
+    createMediaAppSpec("https://music.youtube.com", 'ytm'),
+    createMediaAppSpec("https://youtube.com"),
+];
+
+function loadScript() {
     var s = document.createElement('script');
-    s.src = chrome.runtime.getURL('js/ytm.js');
+    s.src = chrome.runtime.getURL('js/' + location.host + '.js');
     s.onload = function () {
         this.remove();
     };
@@ -8,8 +43,8 @@ function loadYtm() {
 }
 
 function listen() {
-    if (!window.__ytmMessageListenSet) {
-        window.__ytmMessageListenSet = true;
+    if (!window.__itwMessageListenSet) {
+        window.__itwMessageListenSet = true;
 
         window.addEventListener("message", (event) => {
             if (event.data.destination === "extension") {
@@ -88,27 +123,37 @@ chrome.commands.onCommand.addListener(function (command) {
     const arg = parts[1];
 
     console.info("Received command in bg", command);
+
     const message = {type: type, arg, destination: "content"};
-    chrome.tabs.query({url: "https://music.youtube.com/*"}, function (tabs) {
-        tabs.forEach(tab => {
-            console.info("Sending command in to tab", tab.id, message);
-            chrome.tabs.sendMessage(tab.id, message);
+    appSpecs
+        .filter(app => app.supportedCommandTypes.indexOf(type) !== -1)
+        .forEach(app => {
+            chrome.tabs.query({url: app.url + "/*"}, function (tabs) {
+                tabs.forEach(tab => {
+                    console.info("Sending command in to tab", tab.id, message);
+                    chrome.tabs.sendMessage(tab.id, message);
+                });
+            });
         });
-    });
-    chrome.tabs.query({url: "https://youtube.com/*"}, function (tabs) {
-        tabs.forEach(tab => {
-            console.info("Sending command in to tab", tab.id, message);
-            chrome.tabs.sendMessage(tab.id, message);
-        });
-    });
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    if (tab.url.indexOf("https://music.youtube.com") === 0 && changeInfo.status === 'complete' && tab.active) {
+    if (changeInfo.status !== 'complete' || !tab.active) {
+        return;
+    }
+
+    const app = appSpecs.find(x => tab.url.indexOf(x.url) === 0);
+    if (!app) {
+        return;
+    }
+
+    if (app.hasScript) {
         chrome.scripting.executeScript({
             target: {tabId},
-            func: loadYtm
+            func: loadScript,
         });
+    }
+    if (app.supportedCommandTypes.length) {
         chrome.scripting.executeScript({
             target: {tabId},
             func: listen
