@@ -1,0 +1,33 @@
+.side-menu, .sm-header, .sm-body, .sm-items, .sm-tab, .sm-footer {
+    position: relative;
+    top: initial;
+    bottom: initial;
+    right: initial;
+    left: initial;
+}
+
+.side-menu, .sm-header, .sm-body, .sm-items, .sm-tab {
+    height: initial;
+}
+
+.side-menu {
+    z-index: 50;
+    display: block;
+}
+
+.side-menu .sm-tab {
+    color: #404040;
+}
+
+.sm-header {
+    padding: 15px 20px;
+    box-sizing: border-box;
+}
+
+#hamb, #iconMenu, .sm-subtab-title {
+    display: none;
+}
+
+.main-form {
+    left: 265px;
+}

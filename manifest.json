@@ -4,7 +4,9 @@
     "description": "Make the web better for me",
     "manifest_version": 3,
     "host_permissions": [
-        "https://music.youtube.com/*"
+        "https://music.youtube.com/*",
+        "https://clients.nethris.com/*",
+        "https://www.google.com/*"
     ],
     "permissions": [
         "scripting",
@@ -20,10 +22,15 @@
         {
             "resources": [
                 "js/music.youtube.com.js",
+                "js/clients.nethris.com.js",
+                "css/clients.nethris.com.css",
+                "css/www.google.com.css",
                 "img/favicon_144.png"
             ],
             "matches": [
-                "https://music.youtube.com/*"
+                "https://music.youtube.com/*",
+                "https://clients.nethris.com/*",
+                "https://www.google.com/*"
             ]
         }
     ],

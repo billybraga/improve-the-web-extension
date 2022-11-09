@@ -1,21 +1,29 @@
+// Types
+
 /**
  * @typedef AppSpec
  * @property {string} url
  * @property {string[]} supportedCommandTypes
  * @property {boolean} hasScript
+ * @property {boolean} hasCss
  */
 
+
+// Methods
+
 /**
- * @param {string} url
- * @param {string[]} supportedCommandTypes
- * @param {boolean} hasScript
+ * @param {string} host
+ * @param {string[]} [supportedCommandTypes]
+ * @param {boolean} [hasScript]
+ * @param {boolean} [hasCss]
  * @returns {AppSpec}
  */
-function createAppSpec(url, supportedCommandTypes, hasScript) {
+function createAppSpec(host, supportedCommandTypes, hasScript, hasCss) {
     return {
-        url: url,
+        url: "https://" + host,
         supportedCommandTypes: supportedCommandTypes,
         hasScript,
+        hasCss
     };
 }
 
@@ -28,18 +36,23 @@ function createMediaAppSpec(url, hasScript) {
     return createAppSpec(url, ["volume_change", "play_pause", "track"], hasScript);
 }
 
-const appSpecs = [
-    createMediaAppSpec("https://music.youtube.com", 'ytm'),
-    createMediaAppSpec("https://youtube.com"),
-];
-
 function loadScript() {
+    console.log("Loading js");
     var s = document.createElement('script');
     s.src = chrome.runtime.getURL('js/' + location.host + '.js');
     s.onload = function () {
         this.remove();
     };
     (document.head || document.documentElement).appendChild(s);
+}
+
+function loadCss() {
+    console.log("Loading css");
+    const linkElement = document.createElement("link");
+    linkElement.rel = "stylesheet";
+    linkElement.type = "text/css";
+    linkElement.href = chrome.runtime.getURL('css/' + location.host + '.css');
+    (document.head || document.documentElement).appendChild(linkElement);
 }
 
 function listen() {
@@ -61,59 +74,74 @@ function listen() {
     }
 }
 
+
+// Variables
+
+const appSpecs = [
+    createMediaAppSpec("music.youtube.com", 'ytm'),
+    createMediaAppSpec("youtube.com"),
+    createAppSpec("clients.nethris.com", [], true, true),
+    createAppSpec("www.google.com", [], false, true),
+];
 const notifTimeMs = 2000;
 let notifs = {};
+
+
+// Load
+
 chrome.runtime.onMessage.addListener(function (message) {
-    if (message.type === "notif") {
-        const notifId = message.notifId;
-        const notifOptions = message.notif;
-        const scheduleClear = () => {
-            if (notifs[notifId].clearTimeoutId) {
-                clearTimeout(notifs[notifId].clearTimeoutId);
-            }
-            notifs[notifId].clearTimeoutId = setTimeout(clear, notifTimeMs);
-        };
-        const clear = (callback) => {
-            notifs[notifId] = null;
-            console.log("Clear notif", notifId);
-            chrome.notifications.clear(
-                notifId,
-                x => {
-                    console.log("Clear callback", x, notifId);
-                    if (callback) {
-                        callback();
-                    }
+    if (message.type !== "notif") {
+        return;
+    }
+
+    const notifId = message.notifId;
+    const notifOptions = message.notif;
+    const scheduleClear = () => {
+        if (notifs[notifId].clearTimeoutId) {
+            clearTimeout(notifs[notifId].clearTimeoutId);
+        }
+        notifs[notifId].clearTimeoutId = setTimeout(clear, notifTimeMs);
+    };
+    const clear = (callback) => {
+        notifs[notifId] = null;
+        console.log("Clear notif", notifId);
+        chrome.notifications.clear(
+            notifId,
+            x => {
+                console.log("Clear callback", x, notifId);
+                if (callback) {
+                    callback();
                 }
-            );
-        };
-        if (notifs[notifId] && notifs[notifId].created) {
-            console.log("Update notif", notifId, message.notif);
+            }
+        );
+    };
+    if (notifs[notifId] && notifs[notifId].created) {
+        console.log("Update notif", notifId, message.notif);
+        scheduleClear();
+        chrome.notifications.update(
+            notifId,
+            notifOptions
+        );
+    } else {
+        const doCreate = () => {
+            notifs[notifId] = {created: true};
             scheduleClear();
-            chrome.notifications.update(
+            notifOptions.iconUrl = "/img/favicon_144.png";
+            notifOptions.silent = true;
+            console.log("Create notif", notifId, notifOptions);
+            chrome.notifications.create(
                 notifId,
                 notifOptions
             );
-        } else {
-            const doCreate = () => {
-                notifs[notifId] = {created: true};
-                scheduleClear();
-                notifOptions.iconUrl = "/img/favicon_144.png";
-                notifOptions.silent = true;
-                console.log("Create notif", notifId, notifOptions);
-                chrome.notifications.create(
-                    notifId,
-                    notifOptions
-                );
-            };
+        };
 
-            if (notifs[notifId]) {
-                clearTimeout(notifs[notifId].createTimeoutId);
-            }
-
-            notifs[notifId] = {
-                createTimeoutId: setTimeout(doCreate, message.instant ? 0 : 500)
-            };
+        if (notifs[notifId]) {
+            clearTimeout(notifs[notifId].createTimeoutId);
         }
+
+        notifs[notifId] = {
+            createTimeoutId: setTimeout(doCreate, message.instant ? 0 : 500)
+        };
     }
 });
 
@@ -151,6 +179,12 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         chrome.scripting.executeScript({
             target: {tabId},
             func: loadScript,
+        });
+    }
+    if (app.hasCss) {
+        chrome.scripting.executeScript({
+            target: {tabId},
+            func: loadCss,
         });
     }
     if (app.supportedCommandTypes.length) {
