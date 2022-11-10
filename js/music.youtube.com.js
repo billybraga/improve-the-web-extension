@@ -1,5 +1,5 @@
-if (!window.__ytmLoaded) {
-    window.__ytmLoaded = true;
+if (!window.__itwLoaded) {
+    window.__itwLoaded = true;
 
     const debugLogs = false;
 

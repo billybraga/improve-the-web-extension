@@ -82,7 +82,7 @@ function listen() {
 
 const appSpecs = [
     createMediaAppSpec("music.youtube.com", true, true),
-    createMediaAppSpec("youtube.com", false, true),
+    createMediaAppSpec("www.youtube.com", false, true),
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true),
@@ -162,7 +162,7 @@ chrome.commands.onCommand.addListener(function (command) {
         .forEach(app => {
             chrome.tabs.query({url: app.url + "/*"}, function (tabs) {
                 tabs.forEach(tab => {
-                    console.info("Sending command in to tab", tab.id, message);
+                    console.info("Sending command in to tab", message, tab);
                     chrome.tabs.sendMessage(tab.id, message);
                 });
             });
