@@ -81,12 +81,14 @@ function listen() {
 // Variables
 
 const appSpecs = [
+    // YouTube before YouTube Music, because YouTube Music is always active
+    createMediaAppSpec("www.youtube.com", true, true),
     createMediaAppSpec("music.youtube.com", true, true),
-    createMediaAppSpec("www.youtube.com", false, true),
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true),
 ];
+
 const notifTimeMs = 2000;
 let notifs = {};
 
@@ -149,7 +151,7 @@ chrome.runtime.onMessage.addListener(function (message) {
     }
 });
 
-chrome.commands.onCommand.addListener(function (command) {
+chrome.commands.onCommand.addListener(async function (command) {
     const parts = command.split('-');
     const type = parts[0];
     const arg = parts[1];
@@ -157,17 +159,31 @@ chrome.commands.onCommand.addListener(function (command) {
     console.info("Received command in bg", command);
 
     const message = {type: type, arg, destination: "content"};
-    appSpecs
-        .filter(app => app.supportedCommandTypes.indexOf(type) !== -1)
-        .forEach(app => {
-            chrome.tabs.query({url: app.url + "/*"}, function (tabs) {
-                tabs.forEach(tab => {
-                    console.info("Sending command in to tab", message, tab);
-                    chrome.tabs.sendMessage(tab.id, message);
-                });
-            });
-        });
+    const tabsList = await Promise.all(
+        appSpecs
+            .filter(app => app.supportedCommandTypes.indexOf(type) !== -1)
+            .map(app => chrome.tabs.query({url: app.url + "/*"}))
+    );
+
+    const tabs = tabsList.flatMap(x => x);
+    const activeTab = tabs.find(x => x.active);
+
+    if (activeTab) {
+        sendCommandToTab(activeTab, message);
+        return;
+    }
+
+    if (!tabs.length) {
+        console.info("Found no tab for command", message);
+    }
+
+    sendCommandToTab(tabs[0], message);
 });
+
+function sendCommandToTab(tab, message) {
+    chrome.tabs.sendMessage(tab.id, message);
+    console.info("Sending command in to tab", message, tab);
+}
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (!tab.active) {
