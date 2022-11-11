@@ -23,16 +23,20 @@ if (!window.__itwLoaded) {
     const volumeSlider = document.getElementById('volume-slider');
     let targetVolume = 50;
 
-    const setVidTagVolume = (newVolume) => {
+    function getPlayerApi() {
+        return playerApi;
+    }
+
+    function setVidTagVolume(newVolume) {
         logDebug("Setting tag volume", newVolume);
         videoTag.volume = Math.min(1, newVolume / 100);
-    };
+    }
 
-    const setApiVolume = (newVolume) => {
+    function setApiVolume(newVolume) {
         logDebug("Setting api volume", newVolume);
         playerApi.setVolume(newVolume);
         volumeSlider.value = newVolume;
-    };
+    }
 
     const oldVolStr = localStorage["__ytmVol"];
     if (oldVolStr) {
@@ -105,36 +109,35 @@ if (!window.__itwLoaded) {
 
         if (event.data.type) {
             console.log("Content script received", event.data);
+
             let notif = {
-                type: "basic",
+                type: "progress",
                 title: "Youtube Music"
             };
             let instant = true;
             if (event.data.type === "volume_change") {
-                const newVol = handleVolumeCommand(event.data.arg);
-                const newVolInt = Math.round(newVol);
+                handleVolumeCommand(event.data.arg);
                 notif.message = "Volume " + event.data.arg;
-                notif.progress = newVolInt;
-                notif.type = "progress";
                 instant = false;
             } else if (event.data.type === "play_pause") {
-                notif.progress = playerApi.getVolume();
-                notif.type = "progress";
                 playBtn.click();
                 // 1 is play, 2 is pause
-                if (playerApi.getPlayerState() === 1) {
+                if (getPlayerApi().getPlayerState() === 1) {
                     notif.message = "Pause";
                 } else {
                     notif.message = "Play";
                 }
             } else if (event.data.type === "track") {
                 if (event.data.arg === "next") {
-                    playerApi.nextVideo();
+                    notif.message = "Next";
+                    getPlayerApi().nextVideo();
                 } else if (event.data.arg === "prev") {
-                    playerApi.previousVideo();
+                    notif.message = "Previous";
+                    getPlayerApi().previousVideo();
                 }
             }
 
+            notif.progress = getPlayerApi().getVolume();
             const notifId = event.data.type;
             window.postMessage(
                 {
@@ -148,7 +151,7 @@ if (!window.__itwLoaded) {
     }, false);
 
     function handleVolumeCommand(direction) {
-        let volume = playerApi.getVolume();
+        let volume = getPlayerApi().getVolume();
         const unit = direction === 'down' ? -1 : 1;
         const relativeChange = unit * volDelta * (1 + (4 * volume / 100.0));
         console.info("will change volume of", relativeChange);

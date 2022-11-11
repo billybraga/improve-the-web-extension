@@ -55,20 +55,15 @@ if (!window.__itwLoaded) {
         if (event.data.type) {
             console.log("Content script received", event.data);
             let notif = {
-                type: "basic",
+                type: "progress",
                 title: "Youtube"
             };
             let instant = true;
             if (event.data.type === "volume_change") {
-                const newVol = handleVolumeCommand(event.data.arg);
-                const newVolInt = Math.round(newVol);
+                handleVolumeCommand(event.data.arg);
                 notif.message = "Volume " + event.data.arg;
-                notif.progress = newVolInt;
-                notif.type = "progress";
                 instant = false;
             } else if (event.data.type === "play_pause") {
-                notif.progress = getPlayerApi().getVolume();
-                notif.type = "progress";
                 // 1 is play, 2 is pause
                 if (getPlayerApi().getPlayerState() === 1) {
                     notif.message = "Pause";
@@ -79,12 +74,15 @@ if (!window.__itwLoaded) {
                 }
             } else if (event.data.type === "track") {
                 if (event.data.arg === "next") {
+                    notif.message = "Next";
                     getPlayerApi().nextVideo();
                 } else if (event.data.arg === "prev") {
+                    notif.message = "Previous";
                     getPlayerApi().previousVideo();
                 }
             }
 
+            notif.progress = getPlayerApi().getVolume();
             const notifId = event.data.type;
             window.postMessage(
                 {
