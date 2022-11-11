@@ -114,9 +114,10 @@ if (!window.__itwLoaded) {
                 type: "progress",
                 title: "Youtube Music"
             };
+            let vol = getPlayerApi().getVolume();
             let instant = true;
             if (event.data.type === "volume_change") {
-                handleVolumeCommand(event.data.arg);
+                vol = handleVolumeCommand(event.data.arg);
                 notif.message = "Volume " + event.data.arg;
                 instant = false;
             } else if (event.data.type === "play_pause") {
@@ -137,7 +138,7 @@ if (!window.__itwLoaded) {
                 }
             }
 
-            notif.progress = getPlayerApi().getVolume();
+            notif.progress = Math.round(vol);
             const notifId = event.data.type;
             window.postMessage(
                 {
