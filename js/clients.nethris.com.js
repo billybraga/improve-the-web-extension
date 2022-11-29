@@ -9,9 +9,11 @@ if (!window.__itwLoaded) {
         fillBtn.textContent = 'Fill';
         fillBtn.onclick = () => {
             for (let i = 2; i <= 6; i++) {
-                document
-                    .getElementById('TS_HOURS' + i + '__TIMEENTRY_SCREEN_DAY__0')
-                    .value = 8;
+                const hourElem = document
+                    .getElementById('TS_HOURS' + i + '__TIMEENTRY_SCREEN_DAY__0');
+                hourElem.value = 8;
+                var event = new Event('change');
+                hourElem.dispatchEvent(event);
             }
         };
         timeAddBtn.after(fillBtn);

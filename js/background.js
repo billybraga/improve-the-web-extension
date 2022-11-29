@@ -49,15 +49,6 @@ function loadScript() {
     (document.head || document.documentElement).appendChild(s);
 }
 
-function loadCss() {
-    console.log("Loading css");
-    const linkElement = document.createElement("link");
-    linkElement.rel = "stylesheet";
-    linkElement.type = "text/css";
-    linkElement.href = chrome.runtime.getURL('css/' + location.host + '.css');
-    (document.head || document.documentElement).appendChild(linkElement);
-}
-
 function listen() {
     if (!window.__itwMessageListenSet) {
         window.__itwMessageListenSet = true;
@@ -93,7 +84,23 @@ const notifTimeMs = 2000;
 let notifs = {};
 
 
-// Load
+// Events
+
+chrome.notifications.onClicked.addListener(function (notificationId) {
+    const notif = notifs[notificationId];
+    if (!notif) {
+        console.log("Did not find notif to click", notificationId);
+        return;
+    }
+    console.log("Will focus tab", notif.tabIndex, notif.tabWindowId);
+    chrome.tabs.highlight(
+        {
+            tabs: [notif.tabIndex],
+            windowId: notif.tabWindowId
+        },
+        () => console.log("Focused tab", notif.tabIndex, notif.tabWindowId)
+    );
+});
 
 chrome.runtime.onMessage.addListener(function (message) {
     if (message.type !== "notif") {
@@ -130,7 +137,7 @@ chrome.runtime.onMessage.addListener(function (message) {
         );
     } else {
         const doCreate = () => {
-            notifs[notifId] = {created: true};
+            notifs[notifId].created = true;
             scheduleClear();
             notifOptions.iconUrl = "/img/favicon_144.png";
             notifOptions.silent = true;
@@ -146,7 +153,9 @@ chrome.runtime.onMessage.addListener(function (message) {
         }
 
         notifs[notifId] = {
-            createTimeoutId: setTimeout(doCreate, message.instant ? 0 : 500)
+            createTimeoutId: setTimeout(doCreate, message.instant ? 0 : 500),
+            tabIndex: message.tabIndex,
+            tabWindowId: message.tabWindowId,
         };
     }
 });
@@ -166,12 +175,6 @@ chrome.commands.onCommand.addListener(async function (command) {
     );
 
     const tabs = tabsList.flatMap(x => x);
-    const activeTab = tabs.find(x => x.active);
-
-    if (activeTab) {
-        sendCommandToTab(activeTab, message);
-        return;
-    }
 
     if (!tabs.length) {
         console.info("Found no tab for command", message);
@@ -181,6 +184,8 @@ chrome.commands.onCommand.addListener(async function (command) {
 });
 
 function sendCommandToTab(tab, message) {
+    message.tabIndex = tab.index;
+    message.tabWindowId = tab.windowId;
     chrome.tabs.sendMessage(tab.id, message);
     console.info("Sending command in to tab", message, tab);
 }
@@ -194,6 +199,8 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (!app) {
         return;
     }
+
+    console.log("tab", changeInfo.status, tab.url);
 
     if (changeInfo.status === 'complete') {
         if (app.hasScript) {

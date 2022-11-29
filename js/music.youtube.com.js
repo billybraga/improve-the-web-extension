@@ -10,13 +10,14 @@ if (!window.__itwLoaded) {
     }
 
     console.info("Loaded theme");
+    document.documentElement.removeAttribute('dark');
+    document.documentElement.setAttribute('light', 'true');
     document.head.querySelector("meta[name=theme-color]").content = "#fff"
 
     console.info("Loaded fading");
 
     const fadeTime = 700;
     const steps = 30;
-    const volDelta = 1;
     const playBtn = document.getElementById("play-pause-button");
     const videoTag = document.getElementsByTagName("video")[0];
     const playerApi = document.getElementById("player").playerApi_;
@@ -25,6 +26,10 @@ if (!window.__itwLoaded) {
 
     function getPlayerApi() {
         return playerApi;
+    }
+
+    function getVidTagVolume() {
+        return videoTag.volume * 100;
     }
 
     function setVidTagVolume(newVolume) {
@@ -40,7 +45,9 @@ if (!window.__itwLoaded) {
 
     const oldVolStr = localStorage["__ytmVol"];
     if (oldVolStr) {
-        setApiVolume(parseFloat(oldVolStr));
+        const newVolume = parseFloat(oldVolStr);
+        setApiVolume(Math.ceil(newVolume));
+        setVidTagVolume(newVolume)
     }
 
     const fade = (dir, dest, cb) => {
@@ -53,7 +60,7 @@ if (!window.__itwLoaded) {
         innerFade();
 
         function innerFade() {
-            let tagVol = videoTag.volume * 100;
+            let tagVol = getVidTagVolume();
             if ((dir === -1 && tagVol <= dest) || (dir === 1 && tagVol >= dest)) {
                 setApiVolume(tagVol);
                 console.info("Set volume", tagVol);
@@ -118,7 +125,7 @@ if (!window.__itwLoaded) {
             let instant = true;
             if (event.data.type === "volume_change") {
                 vol = handleVolumeCommand(event.data.arg);
-                notif.message = "Volume " + event.data.arg;
+                notif.message = "Volume " + event.data.arg + " to " + vol.toFixed(1) + "%";
                 instant = false;
             } else if (event.data.type === "play_pause") {
                 playBtn.click();
@@ -138,7 +145,7 @@ if (!window.__itwLoaded) {
                 }
             }
 
-            notif.progress = Math.round(vol);
+            notif.progress = Math.max(1, Math.round(vol));
             const notifId = event.data.type;
             window.postMessage(
                 {
@@ -146,26 +153,35 @@ if (!window.__itwLoaded) {
                     notifId: notifId,
                     notif,
                     destination: "extension",
-                    instant
+                    instant,
+                    tabIndex: event.data.tabIndex,
+                    tabWindowId: event.data.tabWindowId,
                 });
         }
     }, false);
 
     function handleVolumeCommand(direction) {
-        let volume = getPlayerApi().getVolume();
+        let volume = getVidTagVolume();
         const unit = direction === 'down' ? -1 : 1;
-        const relativeChange = unit * volDelta * (1 + (4 * volume / 100.0));
-        console.info("will change volume of", relativeChange);
-        const newVol = Math.min(
-            100,
-            Math.max(
-                0,
-                volume + relativeChange
+        const relativeChange = roundTenth(unit * (0.1 + (4 * volume / 100.0)));
+        const newVol = roundTenth(
+            Math.min(
+                100,
+                Math.max(
+                    0,
+                    volume + relativeChange
+                )
             )
         );
-        setApiVolume(newVol);
+        console.info("will change volume of " + relativeChange + " to " + newVol);
+        setApiVolume(Math.ceil(newVol));
+        setVidTagVolume(newVol);
         localStorage["__ytmVol"] = newVol.toString();
         return newVol;
+    }
+
+    function roundTenth(n) {
+        return 0.1 * Math.round(10 * n);
     }
 
     console.info("Loaded shortcuts");

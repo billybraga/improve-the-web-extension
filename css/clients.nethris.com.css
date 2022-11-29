@@ -1,33 +1,33 @@
 .side-menu, .sm-header, .sm-body, .sm-items, .sm-tab, .sm-footer {
-    position: relative;
-    top: initial;
-    bottom: initial;
-    right: initial;
-    left: initial;
+    position: relative !important;
+    top: initial !important;
+    bottom: initial !important;
+    right: initial !important;
+    left: initial !important;
 }
 
 .side-menu, .sm-header, .sm-body, .sm-items, .sm-tab {
-    height: initial;
+    height: initial !important;
 }
 
 .side-menu {
-    z-index: 50;
-    display: block;
+    z-index: 50 !important;
+    display: block !important;
 }
 
 .side-menu .sm-tab {
-    color: #404040;
+    color: #404040 !important;
 }
 
 .sm-header {
-    padding: 15px 20px;
-    box-sizing: border-box;
+    padding: 15px 20px !important;
+    box-sizing: border-box !important;
 }
 
 #hamb, #iconMenu, .sm-subtab-title {
-    display: none;
+    display: none !important;
 }
 
 .main-form {
-    left: 265px;
+    left: 265px !important;
 }

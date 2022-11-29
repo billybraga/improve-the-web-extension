@@ -1,3 +1,7 @@
 .srp {
     --center-abs-margin: calc(50vw - (var(--center-width) / 2)) !important;
 }
+
+g-scrolling-carousel [role=tablist] {
+    margin-left: 20px !important;
+}

@@ -90,7 +90,9 @@ if (!window.__itwLoaded) {
                     notifId: notifId,
                     notif,
                     destination: "extension",
-                    instant
+                    instant,
+                    tabIndex: event.data.tabIndex,
+                    tabWindowId: event.data.tabWindowId,
                 });
         }
     }, false);

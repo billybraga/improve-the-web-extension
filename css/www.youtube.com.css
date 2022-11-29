@@ -15,27 +15,27 @@ ytd-watch-flexy[flexy][is-two-columns_][is-extra-wide-video_]:not([is-vertical-v
 }
 
 ytd-watch-flexy:not([is-vertical-video_]) #columns #movie_player .html5-video-container video.html5-main-video {
-    width: var(--vid-width)! important;
-    height: auto! important;
+    width: var(--vid-width) !important;
+    height: auto !important;
 }
 
 #columns .ytp-chrome-bottom {
-    width: calc(var(--vid-width) - 12px)! important;
+    width: calc(var(--vid-width) - 12px) !important;
 }
 
 ytd-expander[should-use-number-of-lines][collapsed]>#content.ytd-expander {
-    display: initial;
-    overflow: initial;
-    max-height: initial;
-    -webkit-box-orient: initial;
-    -webkit-line-clamp: initial;
+    display: initial !important;
+    overflow: initial !important;
+    max-height: initial !important;
+    -webkit-box-orient: initial !important;
+    -webkit-line-clamp: initial !important;
 }
 
 tp-yt-paper-button.ytd-expander {
-    display: none;
+    display: none !important;
 }
 
 /* #movie_player .ytp-chrome-bottom > .ytp-progress-bar-container .ytp-progress-bar .ytp-chapter-hover-container {
-     width: calc(var(--vid-width) - 12px)! important;
+     width: calc(var(--vid-width) - 12px) !important;
  }
  */
