@@ -101,6 +101,15 @@ html::-webkit-scrollbar-thumb {
 html::-webkit-scrollbar-thumb:active {
     background: #6b6b6b !important;
 }
+
+ytmusic-carousel-shelf-renderer {
+    background: var(--darker-background) !important;
+}
+
+ytmusic-carousel {
+    background: var(--darker-background) !important;
+}
+
 ytmusic-dropdown-renderer[dropdown-style=default] tp-yt-paper-dropdown-menu.ytmusic-dropdown-renderer .input-content.tp-yt-paper-input-container>iron-input{
     color:#212121 !important;
 }

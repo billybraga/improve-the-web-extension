@@ -16,7 +16,7 @@ if (!window.__itwLoaded) {
 
     console.info("Loaded fading");
 
-    const volChangeRoundDigits = 1;
+    const volChangeRoundDigits = 0;
     const minVolChange = Math.pow(10, -volChangeRoundDigits);
     const volChangeMinStep = minVolChange;
     const fadeTime = 700;
@@ -32,7 +32,10 @@ if (!window.__itwLoaded) {
         if (!changingVolume) {
             console.info("Got video tag volumechange event outside of changingVolume=true, cancelling", e);
             setTimeout(() => setVolume(targetVolume), 1);
+            return;
         }
+
+        console.info("Got video tag volumechange inside of changingVolume=true", e);
     };
 
     volumeSlider.onchange = () => {
@@ -211,11 +214,12 @@ if (!window.__itwLoaded) {
     }, false);
 
     function handleVolumeCommand(direction) {
+        const startVol = getVidTagVolume();
         const unit = direction === 'down' ? -1 : 1;
         const relativeChange = unit * Math.max(
             minVolChange,
             roundN(
-                (volChangeMinStep + (4 * targetVolume / 100.0)),
+                (volChangeMinStep + (4 * startVol / 100.0)),
                 volChangeRoundDigits
             )
         );
@@ -224,12 +228,12 @@ if (!window.__itwLoaded) {
                 100,
                 Math.max(
                     0,
-                    targetVolume + relativeChange
+                    startVol + relativeChange
                 )
             ),
             volChangeRoundDigits
         );
-        console.info("will change volume of " + relativeChange + " to " + newVol);
+        console.info(`will change volume by ${relativeChange}, from ${startVol} to ${newVol}`);
         setVolume(newVol);
         localStorage["__ytmVol"] = newVol.toString();
         return newVol;
