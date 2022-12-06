@@ -1,28 +1,43 @@
 if (!window.__itwLoaded) {
     window.__itwLoaded = true;
+    const SPRINT_PAGE = 'sprint';
+    const WORK_ITEM_PAGE = 'work item';
+    const BUILD_RESULTS_PAGE = 'build results';
+    const fixers = {
+        [SPRINT_PAGE]: augmentSprint,
+        [WORK_ITEM_PAGE]: augmentWorkItem,
+        [BUILD_RESULTS_PAGE]: fixBuildResults,
+    }
     let lastHref;
     let sprintAugmented = false;
+    let lastPage = null;
     setInterval(checkPage, 100);
 
     function checkPage() {
         if (lastHref === location.href) {
             return;
         }
+
         lastHref = location.href;
+        let page = null;
+
         if (lastHref.indexOf("_build/results") !== -1) {
-            fixElems();
+            page = BUILD_RESULTS_PAGE;
         } else if (lastHref.indexOf("_sprints/taskboard") !== -1) {
             if (lastHref.indexOf("workitem=") === -1) {
-                augmentSprint();
+                page = SPRINT_PAGE;
             } else {
-                augmentWorkItem();
+                page = WORK_ITEM_PAGE;
             }
         } else if (lastHref.indexOf("_workitems/edit") !== -1) {
-            augmentWorkItem();
+            page = WORK_ITEM_PAGE;
         }
+
+        console.info("Fixing", page);
+        fixers[page]();
     }
 
-    function fixElems() {
+    function fixBuildResults() {
         console.info("fix elems");
         var elems = document.querySelectorAll(".dark-run-logs");
 

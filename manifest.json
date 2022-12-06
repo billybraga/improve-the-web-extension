@@ -8,7 +8,8 @@
         "https://clients.nethris.com/*",
         "https://www.google.com/*",
         "https://www.youtube.com/*",
-        "https://dev.azure.com/*"
+        "https://dev.azure.com/*",
+        "https://mail.google.com/*"
     ],
     "permissions": [
         "scripting",
@@ -33,14 +34,16 @@
                 "js/www.youtube.com.js",
                 "css/dev.azure.com.css",
                 "js/dev.azure.com.js",
-                "img/favicon_144.png"
+                "img/favicon_144.png",
+                "cdd/mail.google.com.css"
             ],
             "matches": [
                 "https://music.youtube.com/*",
                 "https://www.youtube.com/*",
                 "https://clients.nethris.com/*",
                 "https://www.google.com/*",
-                "https://dev.azure.com/*"
+                "https://dev.azure.com/*",
+                "https://mail.google.com/*"
             ]
         }
     ],

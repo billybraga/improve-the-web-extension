@@ -1,6 +1,12 @@
+:root {
+    --darker-background: #eee;
+    --lighter-background: white;
+    --ytmusic-brand-background-solid:  #eee !important;
+    --ytmusic-background: var(--darker-background);
+}
+
 ytmusic-app {
     --yt-spec-brand-background-primary: #eee !important;
-    --ytmusic-brand-background-solid:  #eee !important;
     --iron-icon-fill-color: #eee !important;
     --iron-icon-stroke-color: #212121 !important;
     --yt-basic-background-color: #999 !important;
@@ -44,15 +50,27 @@ tp-yt-paper-button yt-icon svg {
     stroke: #212121 !important;
 }
 
-ytmusic-player-queue-item
-
-ytmusic-player-queue-item ytmusic-item-thumbnail-overlay-renderer yt-icon {
+ytmusic-player-queue-item ytmusic-item-thumbnail-overlay-renderer yt-icon,
+ytmusic-shelf-renderer ytmusic-item-thumbnail-overlay-renderer yt-icon {
     --iron-icon-stroke-color: #eee;
 }
 
-.ytmusic-popup-container {
-    --ytmusic-brand-background-solid:  #fff !important;
+ytmusic-dialog {
+    background: var(--darker-background) !important;
 }
+
+ytmusic-dialog yt-icon {
+    stroke: #212121 !important;
+    fill: #212121 !important;
+}
+
+.background-gradient {
+    background-image: none !important;
+}
+
+/*.ytmusic-popup-container {*/
+/*    --ytmusic-brand-background-solid:  #fff !important;*/
+/*}*/
 
 .title.ytmusic-responsive-list-item-renderer, ytmusic-pivot-bar-item-renderer {
     --yt-spec-text-primary: #212121 !important;

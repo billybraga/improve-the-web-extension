@@ -16,13 +16,63 @@ if (!window.__itwLoaded) {
 
     console.info("Loaded fading");
 
+    const volChangeRoundDigits = 1;
+    const minVolChange = Math.pow(10, -volChangeRoundDigits);
+    const volChangeMinStep = minVolChange;
     const fadeTime = 700;
     const steps = 30;
     const playBtn = document.getElementById("play-pause-button");
     const videoTag = document.getElementsByTagName("video")[0];
     const playerApi = document.getElementById("player").playerApi_;
     const volumeSlider = document.getElementById('volume-slider');
-    let targetVolume = 50;
+    let targetVolume = 5;
+    let changingVolume = false;
+
+    videoTag.volumechange = e => {
+        if (!changingVolume) {
+            console.info("Got video tag volumechange event outside of changingVolume=true, cancelling", e);
+            setTimeout(() => setVolume(targetVolume), 1);
+        }
+    };
+
+    volumeSlider.onchange = () => {
+        targetVolume = volumeSlider.value;
+        console.info("Setting new volume from slider event", volumeSlider.value);
+    };
+
+    const oldVolStr = localStorage["__ytmVol"];
+    if (oldVolStr) {
+        setVolume(parseFloat(oldVolStr))
+    }
+
+    const logEvents = ['onPlaybackQualityChange', 'onPlaybackRateChange', 'onError', 'onApiChange'];
+    for (const logEvent of logEvents) {
+        playerApi.addEventListener(logEvent, function () {
+            console.info("playerApi event", logEvent, arguments);
+            console.info("playerApi event tag vol", logEvent, getVidTagVolume());
+
+            setTimeout(() => {
+                console.info("playerApi event tag vol", logEvent, getVidTagVolume());
+            }, 150);
+        });
+    }
+
+    let onStateChangeVolChangeTimeout = null;
+    playerApi.addEventListener('onStateChange', function () {
+        console.info("playerApi.onStateChange", arguments);
+        console.info("playerApi event tag vol", "onStateChange", getVidTagVolume());
+        if (!onStateChangeVolChangeTimeout) {
+            onStateChangeVolChangeTimeout = setTimeout(() => {
+                onStateChangeVolChangeTimeout = null;
+                console.info("playerApi event tag vol", "onStateChange", getVidTagVolume());
+                updateVol();
+            }, 150);
+        }
+    });
+
+    function updateVol() {
+        setVolume(targetVolume);
+    }
 
     function getPlayerApi() {
         return playerApi;
@@ -32,26 +82,26 @@ if (!window.__itwLoaded) {
         return videoTag.volume * 100;
     }
 
-    function setVidTagVolume(newVolume) {
-        logDebug("Setting tag volume", newVolume);
-        videoTag.volume = Math.min(1, newVolume / 100);
-    }
-
-    function setApiVolume(newVolume) {
-        logDebug("Setting api volume", newVolume);
-        playerApi.setVolume(newVolume);
-        volumeSlider.value = newVolume;
-    }
-
-    const oldVolStr = localStorage["__ytmVol"];
-    if (oldVolStr) {
-        const newVolume = parseFloat(oldVolStr);
-        setApiVolume(Math.ceil(newVolume));
-        setVidTagVolume(newVolume)
+    function setVolume(newVolume, makeNewTarget = true) {
+        try {
+            changingVolume = true;
+            if (makeNewTarget) {
+                targetVolume = newVolume;
+                console.info("Setting new volume", newVolume);
+            } else {
+                logDebug("Setting temp volume", newVolume);
+            }
+            const intVol = Math.max(1, Math.round(newVolume));
+            playerApi.setVolume(intVol);
+            volumeSlider.value = intVol;
+            videoTag.volume = Math.min(1, newVolume / 100);
+        } finally {
+            changingVolume = false;
+        }
     }
 
     const fade = (dir, dest, cb) => {
-        const startVolume = playerApi.getVolume();
+        const startVolume = getVidTagVolume();
         const delta = Math.abs(dest - startVolume) / steps;
         // 30 steps
         const deltaTimeForChange = fadeTime / steps;
@@ -62,13 +112,13 @@ if (!window.__itwLoaded) {
         function innerFade() {
             let tagVol = getVidTagVolume();
             if ((dir === -1 && tagVol <= dest) || (dir === 1 && tagVol >= dest)) {
-                setApiVolume(tagVol);
+                setVolume(dest, false);
                 console.info("Set volume", tagVol);
                 cb();
                 return;
             }
             let newVolume = Math.max(0, tagVol + (dir * delta));
-            setVidTagVolume(newVolume);
+            setVolume(newVolume, false);
             setTimeout(innerFade, deltaTimeForChange);
         }
     };
@@ -77,7 +127,7 @@ if (!window.__itwLoaded) {
         'click',
         e => {
             e.stopImmediatePropagation();
-            targetVolume = playerApi.getVolume();
+            targetVolume = getVidTagVolume();
             // 1 is play, 2 is pause
             if (playerApi.getPlayerState() === 1) {
                 console.info("Will trigger pause after fade");
@@ -87,13 +137,13 @@ if (!window.__itwLoaded) {
                     () => {
                         playerApi.pauseVideo()
                         // put volume back
-                        setApiVolume(targetVolume);
+                        setVolume(targetVolume, false);
                     }
                 );
             } else {
                 console.info("Will trigger play and fade");
                 // always start at zero when playing
-                setApiVolume(0);
+                setVolume(0, false);
                 // press play
                 playerApi.playVideo();
                 fade(
@@ -121,7 +171,7 @@ if (!window.__itwLoaded) {
                 type: "progress",
                 title: "Youtube Music"
             };
-            let vol = getPlayerApi().getVolume();
+            let vol = getVidTagVolume();
             let instant = true;
             if (event.data.type === "volume_change") {
                 vol = handleVolumeCommand(event.data.arg);
@@ -161,27 +211,33 @@ if (!window.__itwLoaded) {
     }, false);
 
     function handleVolumeCommand(direction) {
-        let volume = getVidTagVolume();
         const unit = direction === 'down' ? -1 : 1;
-        const relativeChange = roundTenth(unit * (0.1 + (4 * volume / 100.0)));
-        const newVol = roundTenth(
+        const relativeChange = unit * Math.max(
+            minVolChange,
+            roundN(
+                (volChangeMinStep + (4 * targetVolume / 100.0)),
+                volChangeRoundDigits
+            )
+        );
+        const newVol = roundN(
             Math.min(
                 100,
                 Math.max(
                     0,
-                    volume + relativeChange
+                    targetVolume + relativeChange
                 )
-            )
+            ),
+            volChangeRoundDigits
         );
         console.info("will change volume of " + relativeChange + " to " + newVol);
-        setApiVolume(Math.ceil(newVol));
-        setVidTagVolume(newVol);
+        setVolume(newVol);
         localStorage["__ytmVol"] = newVol.toString();
         return newVol;
     }
 
-    function roundTenth(n) {
-        return 0.1 * Math.round(10 * n);
+    function roundN(value, digits) {
+        const tenToN = 10 ** digits;
+        return (Math.round(value * tenToN)) / tenToN;
     }
 
     console.info("Loaded shortcuts");

@@ -78,6 +78,7 @@ const appSpecs = [
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true),
+    createAppSpec("mail.google.com", [], false, true),
 ];
 
 const notifTimeMs = 2000;
