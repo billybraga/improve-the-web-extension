@@ -39,7 +39,7 @@ if (!window.__itwLoaded) {
     };
 
     volumeSlider.onchange = () => {
-        targetVolume = volumeSlider.value;
+        setVolume(volumeSlider.value);
         console.info("Setting new volume from slider event", volumeSlider.value);
     };
 

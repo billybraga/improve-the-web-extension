@@ -1,10 +1,39 @@
 .ansifg-c {
     color: #35707f;
 }
+
 .ansifg-bl {
     color: #37668a;
 }
 
 .wit-card:focus-within .card-context-menu {
     visibility: hidden;
+}
+
+@media only screen and (min-width: 2000px) and (max-height: 800px) {
+    /*.run-details-page.bolt-page .run-view-header.bolt-header {*/
+    .run-view-header, .log-header {
+        position: fixed;
+        left: 655px;
+        right: 416px;
+        top: -22px;
+        z-index: 1000 !important;
+    }
+    .log-header {
+        margin-top: 14px;
+        right: 444px;
+        top: -35px;
+    }
+    .log-header .bolt-header-title-area {
+        margin-top: 14px;
+    }
+    .bolt-header-commandbar {
+        margin-top: 7px;
+    }
+    .project-header {
+        height: 55px;
+    }
+    .bolt-messagebar.severity-info {
+        display: none;
+    }
 }
