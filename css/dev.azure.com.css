@@ -10,14 +10,33 @@
     visibility: hidden;
 }
 
-@media only screen and (min-width: 2000px) and (max-height: 800px) {
-    /*.run-details-page.bolt-page .run-view-header.bolt-header {*/
-    .run-view-header, .log-header {
+@media only screen and (min-width: 1700px) and (max-height: 900px) {
+    .run-details-page > .run-view-header,
+    .custom-scrollbar > .run-view-header,
+    .custom-scrollbar > .log-header,
+    .custom-scrollbar > .repos-pr-header,
+    .custom-scrollbar > .repos-pr-create-header,
+    .custom-scrollbar > .bolt-header,
+    .bolt-page > .bolt-header.wit-sprints-header-row {
         position: fixed;
         left: 655px;
         right: 416px;
         top: -22px;
         z-index: 1000 !important;
+    }
+    .bolt-page > .bolt-header.wit-sprints-header-row {
+        position: fixed;
+        left: 450px;
+        right: 444px;
+        top: -35px;
+    }
+    .bolt-page > .bolt-header.wit-sprints-header-row .bolt-header-title-area {
+        margin-top: 20px;
+    }
+    .region-page .custom-scrollbar > .bolt-header {
+        position: fixed;
+        left: 625px;
+        right: 425px;
     }
     .log-header {
         margin-top: 14px;
@@ -29,6 +48,17 @@
     }
     .bolt-header-commandbar {
         margin-top: 7px;
+    }
+    .region-page .custom-scrollbar > .repos-pr-header, .region-page .custom-scrollbar > .repos-pr-create-header {
+        right: 445px;
+        left: 620px;
+        top: -10px;
+    }
+    .repos-pr-header .pr-secondary-title-row, .repos-pr-create-header > .flex-column > .flex-row {
+        margin-top: 22px;
+    }
+    .repos-commit-title-row {
+        margin-bottom: 15px;
     }
     .project-header {
         height: 55px;
