@@ -85,6 +85,16 @@ if (!window.__itwLoaded) {
         return videoTag.volume * 100;
     }
 
+    function getPlayerState(inverse) {
+        // 1 is play, 2 is pause
+        const play = inverse ? 2 : 1;
+        if (getPlayerApi().getPlayerState() === play) {
+            return {name: "Play", verb: "playing"};
+        } else {
+            return {name: "Pause", verb: "paused"};
+        }
+    }
+
     function setVolume(newVolume, makeNewTarget = true) {
         try {
             changingVolume = true;
@@ -177,17 +187,15 @@ if (!window.__itwLoaded) {
             let vol = getVidTagVolume();
             let instant = true;
             if (event.data.type === "volume_change") {
+                document.getElementById('vol-change-sound').play();
                 vol = handleVolumeCommand(event.data.arg);
-                notif.message = "Volume " + event.data.arg + " to " + vol.toFixed(1) + "%";
+                let playerState = getPlayerState();
+                notif.message = "Volume " + event.data.arg + " to " + vol.toFixed(1) + "% (" + playerState.verb + ")";
                 instant = false;
             } else if (event.data.type === "play_pause") {
+                let playerState = getPlayerState(true);
                 playBtn.click();
-                // 1 is play, 2 is pause
-                if (getPlayerApi().getPlayerState() === 1) {
-                    notif.message = "Pause";
-                } else {
-                    notif.message = "Play";
-                }
+                notif.message = playerState.name;
             } else if (event.data.type === "track") {
                 if (event.data.arg === "next") {
                     notif.message = "Next";

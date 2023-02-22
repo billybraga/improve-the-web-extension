@@ -35,7 +35,8 @@
                 "css/dev.azure.com.css",
                 "js/dev.azure.com.js",
                 "img/favicon_144.png",
-                "cdd/mail.google.com.css"
+                "css/mail.google.com.css",
+                "sounds/audio-volume-change.oga"
             ],
             "matches": [
                 "https://music.youtube.com/*",

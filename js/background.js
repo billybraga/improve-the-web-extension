@@ -17,15 +17,17 @@
  * @param {string[]} [supportedCommandTypes]
  * @param {boolean} [hasScript]
  * @param {boolean} [hasCss]
+ * @param {boolean} [hasSound]
  * @returns {AppSpec}
  */
-function createAppSpec(host, supportedCommandTypes, hasScript, hasCss) {
+function createAppSpec(host, supportedCommandTypes, hasScript, hasCss, hasSound) {
     return {
         url: "https://" + host,
         host,
         supportedCommandTypes: supportedCommandTypes,
         hasScript,
-        hasCss
+        hasCss,
+        hasSound
     };
 }
 
@@ -33,20 +35,29 @@ function createAppSpec(host, supportedCommandTypes, hasScript, hasCss) {
  * @param {string} url
  * @param {boolean} hasScript
  * @param {boolean} hasCss
+ * @param {boolean} hasSound
  * @returns {AppSpec}
  */
-function createMediaAppSpec(url, hasScript, hasCss) {
-    return createAppSpec(url, ["volume_change", "play_pause", "track"], hasScript, hasCss);
+function createMediaAppSpec(url, hasScript, hasCss, hasSound) {
+    return createAppSpec(url, ["volume_change", "play_pause", "track"], hasScript, hasCss, hasSound);
 }
 
 function loadScript() {
     console.log("Loading js");
-    var s = document.createElement('script');
+    const s = document.createElement('script');
     s.src = chrome.runtime.getURL('js/' + location.host + '.js');
     s.onload = function () {
         this.remove();
     };
     (document.head || document.documentElement).appendChild(s);
+}
+
+function loadSound() {
+    console.log("Loading sound");
+    const a = document.createElement('audio');
+    a.id = 'vol-change-sound'
+    a.src = chrome.runtime.getURL('sounds/audio-volume-change.oga');
+    document.body.appendChild(a);
 }
 
 function listen() {
@@ -74,7 +85,7 @@ function listen() {
 const appSpecs = [
     // YouTube before YouTube Music, because YouTube Music is always active
     createMediaAppSpec("www.youtube.com", true, true),
-    createMediaAppSpec("music.youtube.com", true, true),
+    createMediaAppSpec("music.youtube.com", true, true, true),
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true),
@@ -212,6 +223,16 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
                 },
                 () => {
                     console.log('added js for ' + app.host)
+                });
+        }
+        if (app.hasSound) {
+            chrome.scripting.executeScript(
+                {
+                    target: {tabId},
+                    func: loadSound,
+                },
+                () => {
+                    console.log('added sound js for ' + app.host)
                 });
         }
         if (app.supportedCommandTypes.length) {
