@@ -51,7 +51,8 @@ tp-yt-paper-button yt-icon svg {
 }
 
 ytmusic-player-queue-item ytmusic-item-thumbnail-overlay-renderer yt-icon,
-ytmusic-shelf-renderer ytmusic-item-thumbnail-overlay-renderer yt-icon {
+ytmusic-shelf-renderer ytmusic-item-thumbnail-overlay-renderer yt-icon,
+.yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled yt-icon {
     --iron-icon-stroke-color: #eee;
 }
 

@@ -56,7 +56,7 @@ function loadSound() {
     console.log("Loading sound");
     const a = document.createElement('audio');
     a.id = 'vol-change-sound'
-    a.src = chrome.runtime.getURL('sounds/audio-volume-change.oga');
+    a.src = chrome.runtime.getURL('sounds/audio-volume-change.mp3');
     document.body.appendChild(a);
 }
 
@@ -88,11 +88,11 @@ const appSpecs = [
     createMediaAppSpec("music.youtube.com", true, true, true),
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
+    createAppSpec("support.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true),
     createAppSpec("mail.google.com", [], false, true),
 ];
 
-const notifTimeMs = 2000;
 let notifs = {};
 
 
@@ -121,6 +121,7 @@ chrome.runtime.onMessage.addListener(function (message) {
 
     const notifId = message.notifId;
     const notifOptions = message.notif;
+    const notifTimeMs = message.notifTimeMs || 2000;
     const scheduleClear = () => {
         if (notifs[notifId].clearTimeoutId) {
             clearTimeout(notifs[notifId].clearTimeoutId);

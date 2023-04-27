@@ -7,6 +7,7 @@
         "https://music.youtube.com/*",
         "https://clients.nethris.com/*",
         "https://www.google.com/*",
+        "https://support.google.com/*",
         "https://www.youtube.com/*",
         "https://dev.azure.com/*",
         "https://mail.google.com/*"
@@ -30,19 +31,21 @@
                 "js/clients.nethris.com.js",
                 "css/clients.nethris.com.css",
                 "css/www.google.com.css",
+                "css/support.google.com.css",
                 "css/www.youtube.com.css",
                 "js/www.youtube.com.js",
                 "css/dev.azure.com.css",
                 "js/dev.azure.com.js",
                 "img/favicon_144.png",
                 "css/mail.google.com.css",
-                "sounds/audio-volume-change.oga"
+                "sounds/audio-volume-change.mp3"
             ],
             "matches": [
                 "https://music.youtube.com/*",
                 "https://www.youtube.com/*",
                 "https://clients.nethris.com/*",
                 "https://www.google.com/*",
+                "https://support.google.com/*",
                 "https://dev.azure.com/*",
                 "https://mail.google.com/*"
             ]

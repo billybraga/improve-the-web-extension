@@ -7,7 +7,7 @@
 }
 
 .wit-card:focus-within .card-context-menu {
-    visibility: hidden;
+    visibility: hidden !important;
 }
 
 @media only screen and (min-width: 1700px) and (max-height: 900px) {
@@ -64,6 +64,12 @@
         height: 55px;
     }
     .bolt-messagebar.severity-info {
-        display: none;
+        position: absolute;
+        top: 4px;
+        z-index: 111;
+        left: 337px;
+    }
+    .bolt-messagebar.severity-info .bolt-messagebar-content {
+        padding: 6px;
     }
 }

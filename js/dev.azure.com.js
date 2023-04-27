@@ -33,8 +33,10 @@ if (!window.__itwLoaded) {
             page = WORK_ITEM_PAGE;
         }
 
-        console.info("Fixing", page);
-        fixers[page]();
+        if (page) {
+            console.info("Fixing", page);
+            fixers[page]();
+        }
     }
 
     function fixBuildResults() {

@@ -16,7 +16,7 @@ if (!window.__itwLoaded) {
 
     console.info("Loaded fading");
 
-    const volChangeRoundDigits = 0;
+    const volChangeRoundDigits = 1;
     const minVolChange = Math.pow(10, -volChangeRoundDigits);
     const volChangeMinStep = minVolChange;
     const fadeTime = 700;
@@ -26,16 +26,20 @@ if (!window.__itwLoaded) {
     const playerApi = document.getElementById("player").playerApi_;
     const volumeSlider = document.getElementById('volume-slider');
     let targetVolume = 5;
-    let changingVolume = false;
+    let expectedChangeVolumeEventCount = 0;
+    let tabIndex = -1;
+    let tabWindowId = -1;
 
-    videoTag.volumechange = e => {
-        if (!changingVolume) {
-            console.info("Got video tag volumechange event outside of changingVolume=true, cancelling", e);
+    videoTag.onvolumechange = e => {
+        expectedChangeVolumeEventCount--;
+        if (expectedChangeVolumeEventCount < 0) {
+            expectedChangeVolumeEventCount = 0;
+            console.info("Got umexpected video tag volumechange, cancelling", e, new Error().stack.toString());
             setTimeout(() => setVolume(targetVolume), 1);
             return;
         }
 
-        console.info("Got video tag volumechange inside of changingVolume=true", e);
+        logDebug("Got expected video tag volumechange", e);
     };
 
     volumeSlider.onchange = () => {
@@ -61,7 +65,9 @@ if (!window.__itwLoaded) {
     }
 
     let onStateChangeVolChangeTimeout = null;
-    playerApi.addEventListener('onStateChange', function () {
+    // newState 1 : playing
+    // newState 2 : paused
+    playerApi.addEventListener('onStateChange', function (newState) {
         console.info("playerApi.onStateChange", arguments);
         console.info("playerApi event tag vol", "onStateChange", getVidTagVolume());
         if (!onStateChangeVolChangeTimeout) {
@@ -70,6 +76,15 @@ if (!window.__itwLoaded) {
                 console.info("playerApi event tag vol", "onStateChange", getVidTagVolume());
                 updateVol();
             }, 150);
+        }
+
+        const notifTitle = newState === 1
+            ? 'Playing'
+            : newState === 2
+                ? 'Paused'
+                : null;
+        if (notifTitle) {
+            notify(notifTitle, notifTitle, getVidTagVolume(), 5000);
         }
     });
 
@@ -96,21 +111,18 @@ if (!window.__itwLoaded) {
     }
 
     function setVolume(newVolume, makeNewTarget = true) {
-        try {
-            changingVolume = true;
-            if (makeNewTarget) {
-                targetVolume = newVolume;
-                console.info("Setting new volume", newVolume);
-            } else {
-                logDebug("Setting temp volume", newVolume);
-            }
-            const intVol = Math.max(1, Math.round(newVolume));
-            playerApi.setVolume(intVol);
-            volumeSlider.value = intVol;
-            videoTag.volume = Math.min(1, newVolume / 100);
-        } finally {
-            changingVolume = false;
+        if (makeNewTarget) {
+            targetVolume = newVolume;
+            console.info("Setting new volume", newVolume);
+        } else {
+            logDebug("Setting temp volume", newVolume);
         }
+        const intVol = Math.max(1, Math.round(newVolume));
+        expectedChangeVolumeEventCount++;
+        playerApi.setVolume(intVol);
+        volumeSlider.value = intVol;
+        expectedChangeVolumeEventCount++;
+        videoTag.volume = Math.min(1, newVolume / 100);
     }
 
     const fade = (dir, dest, cb) => {
@@ -180,46 +192,49 @@ if (!window.__itwLoaded) {
         if (event.data.type) {
             console.log("Content script received", event.data);
 
-            let notif = {
-                type: "progress",
-                title: "Youtube Music"
-            };
-            let vol = getVidTagVolume();
-            let instant = true;
+            tabIndex = event.data.tabIndex;
+            tabWindowId = event.data.tabWindowId;
+
             if (event.data.type === "volume_change") {
                 document.getElementById('vol-change-sound').play();
-                vol = handleVolumeCommand(event.data.arg);
+                const vol = handleVolumeCommand(event.data.arg);
                 let playerState = getPlayerState();
-                notif.message = "Volume " + event.data.arg + " to " + vol.toFixed(1) + "% (" + playerState.verb + ")";
-                instant = false;
+                const title = "Volume " + event.data.arg + " to " + vol.toFixed(1) + "% (" + playerState.verb + ")";
+                notify(event.data.type, title, vol, 2000, false);
             } else if (event.data.type === "play_pause") {
-                let playerState = getPlayerState(true);
                 playBtn.click();
-                notif.message = playerState.name;
             } else if (event.data.type === "track") {
                 if (event.data.arg === "next") {
-                    notif.message = "Next";
                     getPlayerApi().nextVideo();
                 } else if (event.data.arg === "prev") {
-                    notif.message = "Previous";
                     getPlayerApi().previousVideo();
                 }
             }
 
-            notif.progress = Math.max(1, Math.round(vol));
-            const notifId = event.data.type;
-            window.postMessage(
-                {
-                    type: "notif",
-                    notifId: notifId,
-                    notif,
-                    destination: "extension",
-                    instant,
-                    tabIndex: event.data.tabIndex,
-                    tabWindowId: event.data.tabWindowId,
-                });
         }
     }, false);
+
+    function notify(type, title, vol, notifTimeMs, instant = true) {
+        const songTitle = document.querySelector(".ytmusic-player-bar .title")?.textContent;
+        const authorAndMore = document.querySelector(".ytmusic-player-bar .subtitle .byline")?.textContent;
+        let notif = {
+            type: "progress"
+        };
+        notif.message = songTitle || authorAndMore ? `${songTitle} • ${authorAndMore}` : '';
+        notif.progress = Math.max(1, Math.round(vol));
+        notif.title = title;
+        window.postMessage(
+            {
+                type: "notif",
+                notifId: type,
+                notifTimeMs,
+                notif,
+                destination: "extension",
+                instant,
+                tabIndex,
+                tabWindowId,
+            });
+    }
 
     function handleVolumeCommand(direction) {
         const startVol = getVidTagVolume();
