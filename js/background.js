@@ -53,6 +53,10 @@ function loadScript() {
 }
 
 function loadSound() {
+    if (document.getElementById("vol-change-sound")) {
+        console.log("Sound already loaded");
+        return;
+    }
     console.log("Loading sound");
     const a = document.createElement('audio');
     a.id = 'vol-change-sound'
@@ -197,6 +201,10 @@ chrome.commands.onCommand.addListener(async function (command) {
 });
 
 function sendCommandToTab(tab, message) {
+    if (!tab) {
+        console.info("Not sending command in to tab, tab is null", message);
+        return;
+    }
     message.tabIndex = tab.index;
     message.tabWindowId = tab.windowId;
     chrome.tabs.sendMessage(tab.id, message);

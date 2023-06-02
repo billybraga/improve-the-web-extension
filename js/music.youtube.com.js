@@ -16,16 +16,20 @@ if (!window.__itwLoaded) {
 
     console.info("Loaded fading");
 
-    const volChangeRoundDigits = 1;
+    const volChangeRoundDigits = 0;
     const minVolChange = Math.pow(10, -volChangeRoundDigits);
-    const volChangeMinStep = minVolChange;
+    const volChangeMinStep = 2 * minVolChange;
     const fadeTime = 700;
-    const steps = 30;
+    const fadeSteps = 30;
     const playBtn = document.getElementById("play-pause-button");
     const videoTag = document.getElementsByTagName("video")[0];
     const playerApi = document.getElementById("player").playerApi_;
     const volumeSlider = document.getElementById('volume-slider');
-    let targetVolume = 5;
+    
+    /** @var {HTMLMediaElement} volChangeAudio */
+    const volChangeAudio = document.getElementById('vol-change-sound');
+    
+    let targetVolume = 50;
     let expectedChangeVolumeEventCount = 0;
     let tabIndex = -1;
     let tabWindowId = -1;
@@ -43,7 +47,7 @@ if (!window.__itwLoaded) {
     };
 
     volumeSlider.onchange = () => {
-        setVolume(volumeSlider.value);
+        setVolume(volumeSlider.value, true);
         console.info("Setting new volume from slider event", volumeSlider.value);
     };
 
@@ -127,10 +131,10 @@ if (!window.__itwLoaded) {
 
     const fade = (dir, dest, cb) => {
         const startVolume = getVidTagVolume();
-        const delta = Math.abs(dest - startVolume) / steps;
+        const delta = Math.abs(dest - startVolume) / fadeSteps;
         // 30 steps
-        const deltaTimeForChange = fadeTime / steps;
-        console.info("Will set volume to " + dest + " in " + steps + " " + deltaTimeForChange + "ms / " + delta + "% steps");
+        const deltaTimeForChange = fadeTime / fadeSteps;
+        console.info("Will set volume to " + dest + " in " + fadeSteps + " " + deltaTimeForChange + "ms / " + delta + "% steps");
 
         innerFade();
 
@@ -196,10 +200,10 @@ if (!window.__itwLoaded) {
             tabWindowId = event.data.tabWindowId;
 
             if (event.data.type === "volume_change") {
-                document.getElementById('vol-change-sound').play();
+                volChangeAudio.play().catch(e => console.error("Error playing sound", e));
                 const vol = handleVolumeCommand(event.data.arg);
                 let playerState = getPlayerState();
-                const title = "Volume " + event.data.arg + " to " + vol.toFixed(1) + "% (" + playerState.verb + ")";
+                const title = "Volume " + event.data.arg + " to " + vol.toFixed(volChangeRoundDigits) + "% (" + playerState.verb + ")";
                 notify(event.data.type, title, vol, 2000, false);
             } else if (event.data.type === "play_pause") {
                 playBtn.click();
