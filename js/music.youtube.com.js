@@ -23,7 +23,7 @@ if (!window.__itwLoaded) {
     const fadeSteps = 30;
     const playBtn = document.getElementById("play-pause-button");
     const videoTag = document.getElementsByTagName("video")[0];
-    const playerApi = document.getElementById("player").playerApi_;
+    const playerApi = document.getElementById("player").playerApi;
     const volumeSlider = document.getElementById('volume-slider');
     
     /** @var {HTMLMediaElement} volChangeAudio */

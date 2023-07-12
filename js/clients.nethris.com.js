@@ -8,11 +8,13 @@ if (!window.__itwLoaded) {
         fillBtn.classList.add('DefaultActionButton');
         fillBtn.textContent = 'Fill';
         fillBtn.onclick = () => {
+            const month = 1 + (new Date()).getMonth();
+            const isSummer = month >= 7 && month <= 8;
             for (let i = 2; i <= 6; i++) {
                 const hourElem = document
                     .getElementById('TS_HOURS' + i + '__TIMEENTRY_SCREEN_DAY__0');
-                hourElem.value = 8;
-                var event = new Event('change');
+                hourElem.value = isSummer ? (i < 6 ? 8.5 : 6) : 8;
+                const event = new Event('change');
                 hourElem.dispatchEvent(event);
             }
         };
