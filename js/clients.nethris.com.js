@@ -13,7 +13,7 @@ if (!window.__itwLoaded) {
             for (let i = 2; i <= 6; i++) {
                 const hourElem = document
                     .getElementById('TS_HOURS' + i + '__TIMEENTRY_SCREEN_DAY__0');
-                hourElem.value = isSummer ? (i < 6 ? 8.5 : 6) : 8;
+                hourElem.value = isSummer ? (i < 6 ? 8.5 : 4) : 8;
                 const event = new Event('change');
                 hourElem.dispatchEvent(event);
             }
