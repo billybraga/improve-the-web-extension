@@ -14,6 +14,36 @@
     width: 160px;
 }
 
+/* wide and not thin */
+@media only screen and (min-width: 1700px) and (min-height: 900px) {
+    #project-expansion-toggle {
+        display: none;
+    }
+    /* put menu on top */
+    .full-size.region-page > .full-size.vertical-layout > .project-header+div {
+        flex-direction: column !important;
+    }
+
+    .navigation-container {
+        flex-direction: row !important;
+    }
+    
+    .project-navigation {
+        flex-direction: row !important;
+        justify-content: center !important;
+    }
+    
+    .navigation-section {
+        flex-direction: row !important;
+        flex-grow: unset !important;
+    }
+    
+    .hub-group-container.expanded-container.displayed-container {
+        flex-direction: row !important;
+    }
+}
+
+/* wide and thin */
 @media only screen and (min-width: 1700px) and (max-height: 900px) {
     .run-details-page > .run-view-header,
     .custom-scrollbar > .run-view-header,

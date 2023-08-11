@@ -5,7 +5,7 @@
     --ytmusic-background: var(--darker-background);
 }
 
-ytmusic-app {
+ytmusic-app, ytmusic-dialog {
     --yt-spec-brand-background-primary: #eee !important;
     --iron-icon-fill-color: #eee !important;
     --iron-icon-stroke-color: #212121 !important;
@@ -15,6 +15,16 @@ ytmusic-app {
     --ytmusic-general-background-a: #eee !important;
     --ytmusic-general-background-c: #eee !important;
 }
+
+/*ytmusic-dialog {*/
+/*    background: var(--darker-background) !important;*/
+/*}*/
+
+/*ytmusic-dialog yt-icon {*/
+/*    stroke: #212121 !important;*/
+/*    fill: #212121 !important;*/
+/*}*/
+
 
 ytmusic-player-bar {
     /*--iron-icon-fill-color: #212121 !important;*/
@@ -54,15 +64,6 @@ ytmusic-player-queue-item ytmusic-item-thumbnail-overlay-renderer yt-icon,
 ytmusic-shelf-renderer ytmusic-item-thumbnail-overlay-renderer yt-icon,
 .yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled yt-icon {
     --iron-icon-stroke-color: #eee;
-}
-
-ytmusic-dialog {
-    background: var(--darker-background) !important;
-}
-
-ytmusic-dialog yt-icon {
-    stroke: #212121 !important;
-    fill: #212121 !important;
 }
 
 .background-gradient {
@@ -111,7 +112,11 @@ ytmusic-carousel {
     background: var(--darker-background) !important;
 }
 
-ytmusic-dropdown-renderer[dropdown-style=default] tp-yt-paper-dropdown-menu.ytmusic-dropdown-renderer .input-content.tp-yt-paper-input-container>iron-input{
+ytmusic-dropdown-renderer tp-yt-paper-dropdown-menu.ytmusic-dropdown-renderer .input-content.tp-yt-paper-input-container>iron-input{
+    color:#212121 !important;
+}
+
+iron-input.tp-yt-paper-input > input.tp-yt-paper-input{
     color:#212121 !important;
 }
 

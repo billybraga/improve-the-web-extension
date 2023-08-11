@@ -1,10 +1,10 @@
 :root {
-    --bb-content-width: 1500px;
-    --bb-left-menu-width: 256px;
+    --bb-content-width: 1600px;
+    --bb-left-menu-width: 200px;
     --bb-right-menu-width: 55px;
 }
 
-@media only screen and (min-width: 1600px) {
+@media only screen and (min-width: 1700px) {
     body > div > div[tabindex='0'] + div > div {
         width: var(--bb-content-width);
         margin-left: calc((100vw - var(--bb-content-width) - var(--bb-left-menu-width) + var(--bb-right-menu-width)) / 2);
