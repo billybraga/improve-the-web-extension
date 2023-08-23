@@ -3,15 +3,16 @@
 }
 
 ytd-watch-flexy[flexy]:not([is-vertical-video_]) #columns.ytd-watch-flexy {
-    max-width: none;
+    max-width: none !important;
 }
 
 ytd-watch-flexy[flexy]:not([is-vertical-video_]) #player-container-outer.ytd-watch-flexy {
-    max-width: none;
+    max-width: none !important;
 }
 
-ytd-watch-flexy[flexy][is-two-columns_][is-extra-wide-video_]:not([is-vertical-video_]) #primary.ytd-watch-flexy, ytd-watch-flexy[flexy][is-two-columns_][is-four-three-to-sixteen-nine-video_] #primary.ytd-watch-flexy {
-    max-width: var(--vid-width);
+ytd-watch-flexy[flexy][is-two-columns_][is-extra-wide-video_]:not([is-vertical-video_]) #primary.ytd-watch-flexy,
+ytd-watch-flexy[flexy][is-two-columns_][is-four-three-to-sixteen-nine-video_] #primary.ytd-watch-flexy {
+    max-width: var(--vid-width) !important;
 }
 
 ytd-watch-flexy:not([is-vertical-video_]) #columns #movie_player .html5-video-container video.html5-main-video {

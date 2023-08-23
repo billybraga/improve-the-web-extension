@@ -145,7 +145,7 @@ if (!window.__itwLoaded) {
         const newTextElem = document.createElement('input');
         newTextElem.style.marginLeft = '10px';
         newTextElem.style.border = 'none';
-        newTextElem.style.width = '50vw';
+        newTextElem.style.width = '85%';
         newTextElem.value = wi.id + ' ' + wi._fieldData[1];
         newTextElem.onfocus = () => {
             newTextElem.selectionStart = 0;
