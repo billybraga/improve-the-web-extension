@@ -3,7 +3,7 @@ if (!window.__itwLoaded) {
 
     console.log("ra");
 
-    if (document.querySelector('input[type=hidden][name=NbrStation]')) {
+    if (document.querySelector('input[type=hidden][name=NbrStation]') && document.querySelector("#ShowMap")?.value !== 'True') {
         loadResults();
     }
 
@@ -68,25 +68,25 @@ if (!window.__itwLoaded) {
 
         inMontrealAndAvailable.forEach(x => updateDistance(x));
         inMontrealAndAvailable.sort((a, b) => a - b);
-        const bests = inMontrealAndAvailable.slice(0, 3);
+        const bests = inMontrealAndAvailable.slice(0, 10);
 
         console.log("bests", bests);
 
         for (let i = 0; i < bests.length; i++) {
             const best = bests[i];
             const href = document.querySelector(`a[href*="StationID=${best.StationID}\'"]`);
+            const row = href?.parentElement?.parentElement;
             if (href) {
                 href.textContent += ` #${i + 1} (${best.directions})`;
-                href.parentElement.parentElement.classList.add('is-top')
-            } else {
+                row.style.backgroundColor = "#bbffbb";
+            } else if (i < 3) {
                 alert(`#${i + 1} not visible`);
             }
         }
-        
-        const badRows = document.querySelectorAll("form table tbody tr:not(.is-top)");
-        for (const badRow of badRows) {
-            if (badRow.vAlign !== 'top' &&badRow.vAlign !== 'middle')
-            badRow.style.display = "none";
+
+        const badCells = document.querySelectorAll("form table tbody tr td.greySpecial");
+        for (const badCell of badCells) {
+            badCell.classList.remove("greySpecial");
         }
     }
 
