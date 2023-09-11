@@ -8,6 +8,7 @@ if (!window.__itwLoaded) {
     }
 
     const berriUqamName = "Berri-Uqam";
+    const preferredModel = "Elantra";
 
     const montrealPoly = [
         createLatLng(-73.4439468, 45.7167284),
@@ -68,20 +69,22 @@ if (!window.__itwLoaded) {
 
         inMontrealAndAvailable.forEach(x => updateDistance(x));
         inMontrealAndAvailable.sort((a, b) => a - b);
-        const bests = inMontrealAndAvailable.slice(0, 10);
 
-        console.log("bests", bests);
-
-        for (let i = 0; i < bests.length; i++) {
-            const best = bests[i];
-            const href = document.querySelector(`a[href*="StationID=${best.StationID}\'"]`);
+        let hasPreferredModel = false;
+        for (let i = 0; i < inMontrealAndAvailable.length; i++) {
+            const car = inMontrealAndAvailable[i];
+            const isPreferredModel = car.Model === preferredModel;
+            const href = document.querySelector(`a[href*="StationID=${car.StationID}\'"]`);
             const row = href?.parentElement?.parentElement;
             if (href) {
-                href.textContent += ` #${i + 1} (${best.directions})`;
+                href.textContent += ` #${i + 1} (${car.directions})`;
                 row.style.backgroundColor = "#bbffbb";
             } else if (i < 3) {
                 alert(`#${i + 1} not visible`);
+            } else if (isPreferredModel && !hasPreferredModel) {
+                alert(`#${i + 1} not visible: ${car.Model} at ${car.strNomStation} ${car.directions}`);
             }
+            hasPreferredModel ||= isPreferredModel;
         }
 
         const badCells = document.querySelectorAll("form table tbody tr td.greySpecial");
@@ -138,12 +141,12 @@ if (!window.__itwLoaded) {
             .reduce((p, v) => p?.distanceMeters < v.distanceMeters ? p : v);
 
         const walkTime = carStation.Distance * 10;
-        const metroTime = ((carStation.closestMetroStation.distanceMeters / 100) + (carStation.closestMetroStation.metroStation.stationDistance * 1.5)).toFixed(1);
+        const metroTime = (carStation.closestMetroStation.distanceMeters / 100) + (carStation.closestMetroStation.metroStation.stationDistance * 1.5);
         if (walkTime < metroTime) {
             carStation.directions = `${walkTime.toFixed(1)} min à pied`;
             carStation.time = walkTime
         } else {
-            carStation.directions = `${walkTime.toFixed(1)} min par ${carStation.closestMetroStation.metroStation.name}`;
+            carStation.directions = `${metroTime.toFixed(1)} min par ${carStation.closestMetroStation.metroStation.name}`;
             carStation.time = metroTime;
         }
     }
