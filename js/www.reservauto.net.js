@@ -3,7 +3,9 @@ if (!window.__itwLoaded) {
 
     console.log("ra");
 
-    if (document.querySelector('input[type=hidden][name=NbrStation]') && document.querySelector("#ShowMap")?.value !== 'True') {
+    const tbody = document.querySelector("form table tbody");
+    
+    if (tbody && document.querySelector('input[type=hidden][name=NbrStation]') && document.querySelector("#ShowMap")?.value !== 'True') {
         loadResults();
     }
 
@@ -68,7 +70,7 @@ if (!window.__itwLoaded) {
         console.log("inMontrealAndAvailable", inMontrealAndAvailable);
 
         inMontrealAndAvailable.forEach(x => updateDistance(x));
-        inMontrealAndAvailable.sort((a, b) => a - b);
+        inMontrealAndAvailable.sort((a, b) => a.time - b.time);
 
         let hasPreferredModel = false;
         for (let i = 0; i < inMontrealAndAvailable.length; i++) {
@@ -78,11 +80,27 @@ if (!window.__itwLoaded) {
             const row = href?.parentElement?.parentElement;
             if (href) {
                 href.textContent += ` #${i + 1} (${car.directions})`;
-                row.style.backgroundColor = "#bbffbb";
-            } else if (i < 3) {
-                alert(`#${i + 1} not visible`);
-            } else if (isPreferredModel && !hasPreferredModel) {
-                alert(`#${i + 1} not visible: ${car.Model} at ${car.strNomStation} ${car.directions}`);
+                if (i === 0) {
+                    row.style.backgroundColor = "#bbffbb";
+                }
+            } else if (i < 3 || (isPreferredModel && !hasPreferredModel)) {
+                const newRow = document.createElement("tr");
+                newRow.innerHTML = `
+                    <td width="40"><img src="../../Images/Clients/Spacer.gif" width="38" height="30"></td>
+                    <td width="300" class="">
+                        <a href="javascript:newWin ('InfoStation.asp?CurrentLanguageID=2&amp;StationID=${car.StationID}', 440, 550, -1, -1)">${car.StationNo} - ${car.strNomStation} (#${i + 1} ${car.directions})</a>
+                    </td>
+                    <td width="40" align="center" class="">
+                        <a href="javascript:BillingRulesAcpt(59, false, ${car.Longitude}, ${car.Latitude}, ${car.CarID});">Select</a>
+                    </td>
+                    <td width="420" align="center" class="">
+                        <font face="Arial, Helvetica, sans-serif" size="1">
+                            ${car.Brand} - ${car.Model}                        
+                            ${car.HTMLAccessories}
+                        </font>
+                    </td>`;
+                newRow.style.backgroundColor = "#bbffbb";
+                tbody.appendChild(newRow);
             }
             hasPreferredModel ||= isPreferredModel;
         }
