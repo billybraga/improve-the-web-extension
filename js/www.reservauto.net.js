@@ -78,10 +78,20 @@ if (!window.__itwLoaded) {
             const isPreferredModel = car.Model === preferredModel;
             const href = document.querySelector(`a[href*="StationID=${car.StationID}\'"]`);
             const row = href?.parentElement?.parentElement;
+            let color = null;
+            if (i === 0) {
+                color = "#bbffbb";
+            } else if (i === 1) {
+                color = "#ebeb98";
+            } else if (i === 3) {
+                color = "#ffcccc";
+            } else if (isPreferredModel) {
+                color = "#bbeeee";
+            }
             if (href) {
                 href.textContent += ` #${i + 1} (${car.directions})`;
-                if (i === 0) {
-                    row.style.backgroundColor = "#bbffbb";
+                if (color) {
+                    row.style.backgroundColor = color;
                 }
             } else if (i < 3 || (isPreferredModel && !hasPreferredModel)) {
                 const newRow = document.createElement("tr");
@@ -99,7 +109,9 @@ if (!window.__itwLoaded) {
                             ${car.HTMLAccessories}
                         </font>
                     </td>`;
-                newRow.style.backgroundColor = "#bbffbb";
+                if (color) {
+                    newRow.style.backgroundColor = color;
+                }
                 tbody.appendChild(newRow);
             }
             hasPreferredModel ||= isPreferredModel;
@@ -158,15 +170,27 @@ if (!window.__itwLoaded) {
             })
             .reduce((p, v) => p?.distanceMeters < v.distanceMeters ? p : v);
 
-        const walkTime = carStation.Distance * 10;
-        const metroTime = (carStation.closestMetroStation.distanceMeters / 100) + (carStation.closestMetroStation.metroStation.stationDistance * 1.5);
+        const timeToPreferredStation = 5;
+        const carBackTime = distanceToTimeMinutes(carStation.Distance, 30);
+        const walkingTime = distanceToTimeMinutes(carStation.Distance, 6);
+        const walkTime = walkingTime + carBackTime;
+        const inMetroTime = carStation.closestMetroStation.metroStation.stationDistance * 1.5;
+        const toCarFromMetroTime = carStation.closestMetroStation.distanceMeters / 100;
+        const metroTime = timeToPreferredStation
+            + inMetroTime
+            + toCarFromMetroTime
+            + carBackTime;
         if (walkTime < metroTime) {
-            carStation.directions = `${walkTime.toFixed(1)} min à pied`;
+            carStation.directions = `${walkTime.toFixed(1)} min: ${walkingTime.toFixed(1)} min à pied, ${carBackTime.toFixed(1)} min to home`;
             carStation.time = walkTime
         } else {
-            carStation.directions = `${metroTime.toFixed(1)} min par ${carStation.closestMetroStation.metroStation.name}`;
+            carStation.directions = `${metroTime.toFixed(1)} min: ${timeToPreferredStation.toFixed(1)} min to Berri-UQAM, ${inMetroTime.toFixed(1)} min to ${carStation.closestMetroStation.metroStation.name}, ${toCarFromMetroTime.toFixed(1)} min to car, ${carBackTime.toFixed(1)} min to home`;
             carStation.time = metroTime;
         }
+    }
+    
+    function distanceToTimeMinutes(distanceKm, speedKmh) {
+        return 60 * (distanceKm / speedKmh);
     }
 
     function pointDistance(point1, point2) {
