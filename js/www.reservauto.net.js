@@ -10,7 +10,7 @@ if (!window.__itwLoaded) {
     }
 
     const berriUqamName = "Berri-Uqam";
-    const preferredModel = "Elantra";
+    const preferredModels = ["Elantra", "Kona"];
 
     const montrealPoly = [
         createLatLng(-73.4439468, 45.7167284),
@@ -75,7 +75,7 @@ if (!window.__itwLoaded) {
         let hasPreferredModel = false;
         for (let i = 0; i < inMontrealAndAvailable.length; i++) {
             const car = inMontrealAndAvailable[i];
-            const isPreferredModel = car.Model === preferredModel;
+            const isPreferredModel = preferredModels.indexOf(car.Model) !== -1;
             const href = document.querySelector(`a[href*="StationID=${car.StationID}\'"]`);
             const row = href?.parentElement?.parentElement;
             let color = null;
@@ -98,7 +98,7 @@ if (!window.__itwLoaded) {
                 newRow.innerHTML = `
                     <td width="40"><img src="../../Images/Clients/Spacer.gif" width="38" height="30"></td>
                     <td width="300" class="">
-                        <a href="javascript:newWin ('InfoStation.asp?CurrentLanguageID=2&amp;StationID=${car.StationID}', 440, 550, -1, -1)">${car.StationNo} - ${car.strNomStation} (#${i + 1} ${car.directions})</a>
+                        <a href="javascript:newWin ('InfoStation.asp?CurrentLanguageID=2&amp;StationID=${car.StationID}', 440, 550, -1, -1)">${car.StationNo} - ${car.strNomStation} #${i + 1} (${car.directions})</a>
                     </td>
                     <td width="40" align="center" class="">
                         <a href="javascript:BillingRulesAcpt(59, false, ${car.Longitude}, ${car.Latitude}, ${car.CarID});">Select</a>
@@ -171,7 +171,7 @@ if (!window.__itwLoaded) {
             .reduce((p, v) => p?.distanceMeters < v.distanceMeters ? p : v);
 
         const timeToPreferredStation = 5;
-        const carBackTime = distanceToTimeMinutes(carStation.Distance, 30);
+        const carBackTime = distanceToTimeMinutes(carStation.Distance, 20);
         const walkingTime = distanceToTimeMinutes(carStation.Distance, 6);
         const walkTime = walkingTime + carBackTime;
         const inMetroTime = carStation.closestMetroStation.metroStation.stationDistance * 1.5;
