@@ -4,6 +4,11 @@ if (!window.__itwLoaded) {
     console.log("ra");
 
     const tbody = document.querySelector("form table tbody");
+    const promoCheckbox = document.getElementById('Accessories_Winter');
+    
+    if (promoCheckbox) {
+        promoCheckbox.checked = true;
+    }
     
     if (tbody && document.querySelector('input[type=hidden][name=NbrStation]') && document.querySelector("#ShowMap")?.value !== 'True') {
         loadResults();
@@ -73,9 +78,11 @@ if (!window.__itwLoaded) {
         inMontrealAndAvailable.sort((a, b) => a.time - b.time);
 
         let hasPreferredModel = false;
+        let hasPromoVehicle = false;
         for (let i = 0; i < inMontrealAndAvailable.length; i++) {
             const car = inMontrealAndAvailable[i];
             const isPreferredModel = preferredModels.indexOf(car.Model) !== -1;
+            const isPromoVehicle = car.HTMLAccessories.indexOf("PROMO") !== -1;
             const href = document.querySelector(`a[href*="StationID=${car.StationID}\'"]`);
             const row = href?.parentElement?.parentElement;
             let color = null;
@@ -87,13 +94,15 @@ if (!window.__itwLoaded) {
                 color = "#ffcccc";
             } else if (isPreferredModel) {
                 color = "#bbeeee";
+            } else if (isPromoVehicle) {
+                color = "#aaddaa";
             }
             if (href) {
                 href.textContent += ` #${i + 1} (${car.directions})`;
                 if (color) {
                     row.style.backgroundColor = color;
                 }
-            } else if (i < 3 || (isPreferredModel && !hasPreferredModel)) {
+            } else if (i < 3 || (isPreferredModel && !hasPreferredModel) || (isPromoVehicle && !hasPromoVehicle)) {
                 const newRow = document.createElement("tr");
                 newRow.innerHTML = `
                     <td width="40"><img src="../../Images/Clients/Spacer.gif" width="38" height="30"></td>
@@ -115,6 +124,7 @@ if (!window.__itwLoaded) {
                 tbody.appendChild(newRow);
             }
             hasPreferredModel ||= isPreferredModel;
+            hasPromoVehicle ||= isPromoVehicle;
         }
 
         const badCells = document.querySelectorAll("form table tbody tr td.greySpecial");

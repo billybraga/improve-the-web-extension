@@ -10,4 +10,7 @@ g-scrolling-carousel [role=tablist] {
     .primary-container {
         margin: auto;
     }
+    #main > div {
+        overflow-x: hidden;
+    }
 }
