@@ -32,9 +32,9 @@ ytd-expander[should-use-number-of-lines][collapsed]>#content.ytd-expander {
     -webkit-line-clamp: initial !important;
 }
 
-tp-yt-paper-button.ytd-expander {
-    display: none !important;
-}
+/*tp-yt-paper-button.ytd-expander {*/
+/*    display: none !important;*/
+/*}*/
 
 /* #movie_player .ytp-chrome-bottom > .ytp-progress-bar-container .ytp-progress-bar .ytp-chapter-hover-container {
      width: calc(var(--vid-width) - 12px) !important;

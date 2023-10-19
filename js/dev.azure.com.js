@@ -108,11 +108,11 @@ if (!window.__itwLoaded) {
             || document.querySelector('.ms-CommandBar-sideCommands');
         const btnNextDiv = document.createElement("div");
         btnNextDiv.innerHTML = bntNextHtml;
-        btnNextDiv.onclick = () => updateVersion(1);
+        btnNextDiv.onclick = () => updateVersion(2);
         parent.prepend(btnNextDiv);
         const btnPrevDiv = document.createElement("div");
         btnPrevDiv.innerHTML = bntPrevHtml;
-        btnPrevDiv.onclick = () => updateVersion(-1);
+        btnPrevDiv.onclick = () => updateVersion(-2);
         parent.prepend(btnPrevDiv);
     }
 
