@@ -11,7 +11,8 @@
         "https://www.youtube.com/*",
         "https://dev.azure.com/*",
         "https://mail.google.com/*",
-        "https://www.reservauto.net/*"
+        "https://www.reservauto.net/*",
+        "https://github.com/*"
     ],
     "permissions": [
         "scripting",
@@ -48,7 +49,8 @@
                 "img/favicon_144.png",
                 "css/mail.google.com.css",
                 "sounds/audio-volume-change.mp3",
-                "js/www.reservauto.net.js"
+                "js/www.reservauto.net.js",
+                "css/github.com.css"
             ],
             "matches": [
                 "https://music.youtube.com/*",
@@ -58,7 +60,8 @@
                 "https://support.google.com/*",
                 "https://dev.azure.com/*",
                 "https://mail.google.com/*",
-                "https://www.reservauto.net/*"
+                "https://www.reservauto.net/*",
+                "https://github.com/*"
             ]
         }
     ],

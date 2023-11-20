@@ -15,7 +15,7 @@ if (!window.__itwLoaded) {
     }
 
     const berriUqamName = "Berri-Uqam";
-    const preferredModels = ["Elantra", "Kona"];
+    const preferredModels = ["Kona", "Tucson", "Venue", "Carnival"]; // ["Elantra", "Kona", "Tucson", "Venue", "Carnival"];
 
     const montrealPoly = [
         createLatLng(-73.4439468, 45.7167284),
@@ -77,11 +77,12 @@ if (!window.__itwLoaded) {
         inMontrealAndAvailable.forEach(x => updateDistance(x));
         inMontrealAndAvailable.sort((a, b) => a.time - b.time);
 
-        let hasPreferredModel = false;
+        let hasThatPreferredModel = [];
         let hasPromoVehicle = false;
         for (let i = 0; i < inMontrealAndAvailable.length; i++) {
             const car = inMontrealAndAvailable[i];
-            const isPreferredModel = preferredModels.indexOf(car.Model) !== -1;
+            const preferredModelIndex = preferredModels.indexOf(car.Model);
+            const isPreferredModel = preferredModelIndex !== -1;
             const isPromoVehicle = car.HTMLAccessories.indexOf("PROMO") !== -1;
             const href = document.querySelector(`a[href*="StationID=${car.StationID}\'"]`);
             const row = href?.parentElement?.parentElement;
@@ -102,7 +103,7 @@ if (!window.__itwLoaded) {
                 if (color) {
                     row.style.backgroundColor = color;
                 }
-            } else if (i < 3 || (isPreferredModel && !hasPreferredModel) || (isPromoVehicle && !hasPromoVehicle)) {
+            } else if (i < 3 || (isPreferredModel && !hasThatPreferredModel[preferredModelIndex]) || (isPromoVehicle && !hasPromoVehicle)) {
                 const newRow = document.createElement("tr");
                 newRow.innerHTML = `
                     <td width="40"><img src="../../Images/Clients/Spacer.gif" width="38" height="30"></td>
@@ -123,7 +124,7 @@ if (!window.__itwLoaded) {
                 }
                 tbody.appendChild(newRow);
             }
-            hasPreferredModel ||= isPreferredModel;
+            hasThatPreferredModel[preferredModelIndex] = true;
             hasPromoVehicle ||= isPromoVehicle;
         }
 

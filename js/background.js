@@ -95,6 +95,7 @@ const appSpecs = [
     createAppSpec("support.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true),
     createAppSpec("mail.google.com", [], false, true),
+    createAppSpec("github.com", [], false, true),
 ];
 
 let notifs = {};
