@@ -1,3 +1,14 @@
-﻿section[aria-labelledby] {
-    padding-bottom: 80dvh;
+﻿/*section[aria-labelledby] {*/
+/*    padding-bottom: 80dvh !important;*/
+/*}*/
+
+.highlighted-line-menu-container {
+    height: 80dvh !important;
+}
+
+/* wide */
+@media only screen and (min-width: 1700px) {
+    div:not(.ext-loaded):has(> div > #repos-file-tree) {
+        --pane-width: 1000px !important;
+    }
 }
