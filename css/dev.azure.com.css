@@ -16,20 +16,52 @@
 
 /* wide and not thin */
 @media only screen and (min-width: 1700px) and (min-height: 900px) {
+    :root {
+        --header-left-width: 50%;
+        --header-height: 110px;
+        --palette-neutral-8: gray;
+    }
+    
     /* put description in the middle of work items */
     .other-form-sections {
         float: left !important;
         /*width: 45% !important;*/
+        /* make comments go right */
+        height: 100%;
     }
+    
+    .work-item-form-subheader {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: var(--header-left-width);
+        height: var(--header-height);
+    }
+    
     .work-item-form-section.wide, .wit-discussion-group.wide {
         /*width: 55% !important;*/
     }
     .work-item-form-header > .secondary-text > .flex-row {
         width: 90%;
     }
+    
+    .work-item-form-header {
+        width: 90%;
+        /* make it fixed */
+        height: var(--header-height);
+    }
+    
+    .work-item-form-expanded-section-container {
+        border-top: 1px solid rgba(var(--palette-neutral-8));
+    }
+    
     .work-item-form-page > .flex-row:first-child {
-        padding-left: 39%;
-        padding-right: 20%;
+        padding-left: var(--header-left-width);
+        padding-right: 0;
+    }
+    
+    .work-item-form-header .work-item-header-command-bar {
+        float: left;
     }
     
     /* put menu on top */
