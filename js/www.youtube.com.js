@@ -5,16 +5,20 @@ if (!window.__itwLoaded) {
 
     let lastHref;
 
-    //setInterval(checkPageChange, 100);
+    setInterval(checkPageChange, 100);
 
     function checkPageChange() {
         if (lastHref === location.href) {
             return;
         }
         lastHref = location.href;
-        console.log("checkIsVideoPage");
-        if (location.href.indexOf("/watch") !== -1) {
-            //showCommentsOnTheRight();
+        console.log("check page");
+        // if (location.href.indexOf("/watch") !== -1) {
+        //     showCommentsOnTheRight();
+        // }
+
+        if (location.href.indexOf("/playlist") !== -1) {
+            loadWatchlistPage();
         }
     }
 
@@ -157,5 +161,46 @@ if (!window.__itwLoaded) {
 
     function leftPanel() {
         return document.getElementById('below');
+    }
+
+    function loadWatchlistPage() {
+        console.log("watchlist page");
+
+        const nodes = document
+            .querySelectorAll(
+                'ytd-browse ytd-playlist-video-renderer, ytd-browse a.ytd-playlist-video-renderer, ytd-browse ytd-video-meta-block, ytd-browse ytd-playlist-video-renderer ytd-video-meta-block .ytd-channel-name a'
+            );
+        for (let node of nodes) {
+            node.addEventListener('click', evt => {
+                if (evt.ctrlKey && evt.shiftKey) {
+                    console.log('yeah');
+                    evt.stopImmediatePropagation();
+                    evt.preventDefault();
+                    // deleteFromWatchlist();
+                    return false;
+                }
+            });
+        }
+    }
+
+    function deleteFromWatchlist() {
+        fetch("https://www.youtube.com/youtubei/v1/browse/edit_playlist?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false", {
+            "body": JSON.stringify(
+                {
+                    "context": {
+                        "client": {},
+                        "user": {"lockedSafetyMode": false},
+                        "request": {"useSsl": true, "internalExperimentFlags": [], "consistencyTokenJars": []},
+                        "adSignalsInfo": {}
+                    },
+                    "actions": [{"setVideoId": "8588FA9ACFBD88BA", "action": "ACTION_REMOVE_VIDEO"}],
+                    "params": "CAFAAQ%3D%3D",
+                    "playlistId": "WL"
+                }
+            ),
+            "method": "POST",
+            "mode": "cors",
+            "credentials": "include"
+        });
     }
 }

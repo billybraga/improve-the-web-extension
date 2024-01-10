@@ -96,6 +96,7 @@ const appSpecs = [
     createAppSpec("dev.azure.com", [], true, true),
     createAppSpec("mail.google.com", [], false, true),
     createAppSpec("github.com", [], true, true),
+    createAppSpec("www.tangerine.ca", [], true, false),
 ];
 
 let notifs = {};

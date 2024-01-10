@@ -3,6 +3,14 @@
     "version": "1.0",
     "description": "Make the web better for me",
     "manifest_version": 3,
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{f416eb29-6664-47a4-8819-ce0ae55fd695}"
+        },
+        "gecko_android": {
+            "id": "{f416eb29-6664-47a4-8819-ce0ae55fd695}"
+        }
+    },
     "host_permissions": [
         "https://music.youtube.com/*",
         "https://clients.nethris.com/*",
@@ -106,10 +114,6 @@
             },
             "description": "Youtube next track"
         }
-    },
-    "background": {
-        "service_worker": "js/background.js",
-        "type": "module"
     },
     "minimum_chrome_version": "92"
 }
