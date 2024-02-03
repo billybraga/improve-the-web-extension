@@ -1,12 +1,18 @@
 if (!window.__itwLoaded) {
     window.__itwLoaded = true;
+    const CREATING_PR_SESSION_KEY = '_cpr';
+    
     const SPRINT_PAGE = 'sprint';
     const WORK_ITEM_PAGE = 'work item';
     const BUILD_RESULTS_PAGE = 'build results';
+    const CREATE_PR_PAGE = 'create pr';
+    const EDIT_PR_PAGE = 'edit pr';
     const fixers = {
         [SPRINT_PAGE]: augmentSprint,
         [WORK_ITEM_PAGE]: augmentWorkItem,
         [BUILD_RESULTS_PAGE]: fixBuildResults,
+        [CREATE_PR_PAGE]: createPrPage,
+        [EDIT_PR_PAGE]: editPrPage,
     }
     let lastHref;
     let sprintAugmented = false;
@@ -31,6 +37,10 @@ if (!window.__itwLoaded) {
             }
         } else if (lastHref.indexOf("_workitems/edit") !== -1) {
             page = WORK_ITEM_PAGE;
+        } else if (lastHref.indexOf("/pullrequestcreate") !== -1) {
+            page = CREATE_PR_PAGE;
+        } else if (lastHref.indexOf("/pullrequest/") !== -1) {
+            page = EDIT_PR_PAGE;
         }
 
         if (page) {
@@ -45,6 +55,84 @@ if (!window.__itwLoaded) {
 
         for (var i = 0; i < elems.length; i++) {
             elems[i].classList.remove("dark-run-logs");
+        }
+    }
+    
+    function sleep(time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
+    }
+    
+    async function createPrPage() {
+        let checkCount = 0;
+        
+        for (let i = 0; i < 5; i++) {
+            const workItemLinks = document.querySelectorAll('.region-createPullRequestOverviewExtensions a[href*="_workitems"]');
+            if (workItemLinks.length !== 1) {
+                if (checkCount++ > 5) {
+                    console.log("Skipping, there is not one work item", workItemLinks);
+                    return;
+                }
+
+                await sleep(250);
+                continue;
+            }
+            
+            return workItemLinkLoaded(workItemLinks[0].textContent);
+        }
+
+        function workItemLinkLoaded(defaultTitle) {
+            const title = document.querySelector('[aria-label="Enter a title"]');
+            
+            if (title.value?.length < 5) {
+                title.value = defaultTitle;
+            }
+
+            const button = document.querySelector('button.primary:not(.bolt-split-button-option)');
+            if (button.disabled) {
+                return;
+            }
+            
+            sessionStorage[CREATING_PR_SESSION_KEY] = 'true';
+            button.click();
+        }
+    }
+    
+    async function editPrPage() {
+        if (sessionStorage[CREATING_PR_SESSION_KEY] !== 'true') {
+            return;
+        }
+
+        sessionStorage.removeItem(CREATING_PR_SESSION_KEY);
+
+        const tryClickConfirmAutoComplete = async () => {
+            for (let i = 0; i < 5; i++) {
+                const confirmBtn = document.querySelector('.bolt-callout button.primary');
+                if (confirmBtn) {
+                    confirmBtn.click();
+                    break;
+                }
+                await sleep(250);
+            }
+        }
+        
+        for (let i = 0; i < 5; i++) {
+            const setAutoComplete = document.querySelector('.repos-pr-header-complete-button button.bolt-split-button-main');
+            if (setAutoComplete?.textContent === 'Set auto-complete') {
+                setAutoComplete.click();
+                await tryClickConfirmAutoComplete();
+                break;
+            }
+            await sleep(250);
+        }
+        
+        const approveBtn = document.querySelector('.repos-pr-header-vote-button button.bolt-split-button-main.enabled');
+        if (approveBtn?.textContent === 'Approve') {
+            approveBtn.click();
+        }
+        
+        const filesTab = document.querySelector('#__bolt-tab-files');
+        if (filesTab) {
+            filesTab.click();
         }
     }
 

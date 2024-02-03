@@ -5,17 +5,26 @@ if (!window.__itwLoaded) {
 
     const tbody = document.querySelector("form table tbody");
     const promoCheckbox = document.getElementById('Accessories_Winter');
-    
+
     if (promoCheckbox) {
         promoCheckbox.checked = true;
     }
-    
+
     if (tbody && document.querySelector('input[type=hidden][name=NbrStation]') && document.querySelector("#ShowMap")?.value !== 'True') {
         loadResults();
     }
 
     const berriUqamName = "Berri-Uqam";
-    const preferredModels = ["Kona", "Tucson", "Venue", "Carnival"]; // ["Elantra", "Kona", "Tucson", "Venue", "Carnival"];
+    const preferredModels = {
+        Carnival: true,
+        Elantra: true,
+        Kicks: true,
+        Kona: true,
+        Sorento: true,
+        Sportage: true,
+        Tucson: true,
+        Venue: true,
+    };
 
     const montrealPoly = [
         createLatLng(-73.4439468, 45.7167284),
@@ -77,12 +86,17 @@ if (!window.__itwLoaded) {
         inMontrealAndAvailable.forEach(x => updateDistance(x));
         inMontrealAndAvailable.sort((a, b) => a.time - b.time);
 
-        let hasThatPreferredModel = [];
+        let hasThatPreferredModel = {};
         let hasPromoVehicle = false;
+        
         for (let i = 0; i < inMontrealAndAvailable.length; i++) {
+            const formatCar = (description) => {
+                const time = Math.round(car.time) + " min";
+                return `#${i + 1}, ${time}: ${description} (${car.directions})`;
+            }
+
             const car = inMontrealAndAvailable[i];
-            const preferredModelIndex = preferredModels.indexOf(car.Model);
-            const isPreferredModel = preferredModelIndex !== -1;
+            const isPreferredModel = preferredModels[car.Model] === true;
             const isPromoVehicle = car.HTMLAccessories.indexOf("PROMO") !== -1;
             const href = document.querySelector(`a[href*="StationID=${car.StationID}\'"]`);
             const row = href?.parentElement?.parentElement;
@@ -99,16 +113,16 @@ if (!window.__itwLoaded) {
                 color = "#aaddaa";
             }
             if (href) {
-                href.textContent += ` #${i + 1} (${car.directions})`;
+                href.textContent = formatCar(href.textContent);
                 if (color) {
                     row.style.backgroundColor = color;
                 }
-            } else if (i < 3 || (isPreferredModel && !hasThatPreferredModel[preferredModelIndex]) || (isPromoVehicle && !hasPromoVehicle)) {
+            } else if (i < 3 || (isPreferredModel && !hasThatPreferredModel[car.Model]) || (isPromoVehicle && !hasPromoVehicle)) {
                 const newRow = document.createElement("tr");
                 newRow.innerHTML = `
                     <td width="40"><img src="../../Images/Clients/Spacer.gif" width="38" height="30"></td>
                     <td width="300" class="">
-                        <a href="javascript:newWin ('InfoStation.asp?CurrentLanguageID=2&amp;StationID=${car.StationID}', 440, 550, -1, -1)">${car.StationNo} - ${car.strNomStation} #${i + 1} (${car.directions})</a>
+                        <a href="javascript:newWin ('InfoStation.asp?CurrentLanguageID=2&amp;StationID=${car.StationID}', 440, 550, -1, -1)">${formatCar(car.StationNo + " - " + car.strNomStation)}</a>
                     </td>
                     <td width="40" align="center" class="">
                         <a href="javascript:BillingRulesAcpt(59, false, ${car.Longitude}, ${car.Latitude}, ${car.CarID});">Select</a>
@@ -124,7 +138,7 @@ if (!window.__itwLoaded) {
                 }
                 tbody.appendChild(newRow);
             }
-            hasThatPreferredModel[preferredModelIndex] = true;
+            hasThatPreferredModel[car.Model] = isPreferredModel;
             hasPromoVehicle ||= isPromoVehicle;
         }
 
@@ -192,14 +206,14 @@ if (!window.__itwLoaded) {
             + toCarFromMetroTime
             + carBackTime;
         if (walkTime < metroTime) {
-            carStation.directions = `${walkTime.toFixed(1)} min: ${walkingTime.toFixed(1)} min à pied, ${carBackTime.toFixed(1)} min to home`;
+            carStation.directions = `${walkingTime.toFixed(1)} min à pied, ${carBackTime.toFixed(1)} min to home`;
             carStation.time = walkTime
         } else {
-            carStation.directions = `${metroTime.toFixed(1)} min: ${timeToPreferredStation.toFixed(1)} min to Berri-UQAM, ${inMetroTime.toFixed(1)} min to ${carStation.closestMetroStation.metroStation.name}, ${toCarFromMetroTime.toFixed(1)} min to car, ${carBackTime.toFixed(1)} min to home`;
+            carStation.directions = `${timeToPreferredStation.toFixed(1)} min to Berri-UQAM, ${inMetroTime.toFixed(1)} min to ${carStation.closestMetroStation.metroStation.name}, ${toCarFromMetroTime.toFixed(1)} min to car, ${carBackTime.toFixed(1)} min to home`;
             carStation.time = metroTime;
         }
     }
-    
+
     function distanceToTimeMinutes(distanceKm, speedKmh) {
         return 60 * (distanceKm / speedKmh);
     }

@@ -163,44 +163,50 @@ if (!window.__itwLoaded) {
         return document.getElementById('below');
     }
 
+    function sleep(time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
+    }
+    
+    async function nextFrame() {
+        return new Promise(resolve => requestAnimationFrame(resolve));
+    }
+
     function loadWatchlistPage() {
         console.log("watchlist page");
 
         const nodes = document
             .querySelectorAll(
-                'ytd-browse ytd-playlist-video-renderer, ytd-browse a.ytd-playlist-video-renderer, ytd-browse ytd-video-meta-block, ytd-browse ytd-playlist-video-renderer ytd-video-meta-block .ytd-channel-name a'
+                'ytd-playlist-video-list-renderer #contents ytd-playlist-video-renderer'
             );
+        
         for (let node of nodes) {
-            node.addEventListener('click', evt => {
-                if (evt.ctrlKey && evt.shiftKey) {
-                    console.log('yeah');
-                    evt.stopImmediatePropagation();
-                    evt.preventDefault();
-                    // deleteFromWatchlist();
-                    return false;
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '️🗑️';
+            deleteButton.onclick = async () => {
+                node.querySelector('#menu button#button').click();
+                for (let i = 0; i < 5; i++) {
+                    await nextFrame();
+                    const dropdowns = document.querySelectorAll('ytd-popup-container tp-yt-iron-dropdown');
+                    if (dropdowns.length !== 1) {
+                        console.log('did not find the dropdown menu', dropdowns);
+                        continue;
+                    }
+                    const dropdown = dropdowns[0];
+                    const deleteMenu = dropdown.querySelectorAll('ytd-menu-service-item-renderer')[2];
+                    if (!deleteMenu) {
+                        console.log('did not find delete menu', dropdown);
+                        continue;
+                    }
+                    const deleteMenuLabel = deleteMenu.querySelector('yt-formatted-string');
+                    if (deleteMenuLabel?.textContent !== 'Remove from Watch later') {
+                        console.log('3rd menu label is not remove', deleteMenuLabel);
+                        continue;
+                    }
+                    deleteMenu.click();
+                    return;
                 }
-            });
+            };
+            node.appendChild(deleteButton);
         }
-    }
-
-    function deleteFromWatchlist() {
-        fetch("https://www.youtube.com/youtubei/v1/browse/edit_playlist?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false", {
-            "body": JSON.stringify(
-                {
-                    "context": {
-                        "client": {},
-                        "user": {"lockedSafetyMode": false},
-                        "request": {"useSsl": true, "internalExperimentFlags": [], "consistencyTokenJars": []},
-                        "adSignalsInfo": {}
-                    },
-                    "actions": [{"setVideoId": "8588FA9ACFBD88BA", "action": "ACTION_REMOVE_VIDEO"}],
-                    "params": "CAFAAQ%3D%3D",
-                    "playlistId": "WL"
-                }
-            ),
-            "method": "POST",
-            "mode": "cors",
-            "credentials": "include"
-        });
     }
 }
