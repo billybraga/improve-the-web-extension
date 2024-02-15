@@ -7,7 +7,7 @@ if (!window.__itwLoaded) {
 
     setInterval(checkPageChange, 100);
 
-    function checkPageChange() {
+    async function checkPageChange() {
         if (lastHref === location.href) {
             return;
         }
@@ -18,7 +18,7 @@ if (!window.__itwLoaded) {
         // }
 
         if (location.href.indexOf("/playlist") !== -1) {
-            loadWatchlistPage();
+            await loadWatchlistPage();
         }
     }
 
@@ -171,14 +171,16 @@ if (!window.__itwLoaded) {
         return new Promise(resolve => requestAnimationFrame(resolve));
     }
 
-    function loadWatchlistPage() {
+    async function loadWatchlistPage() {
         console.log("watchlist page");
+
+        await sleep(1000);
 
         const nodes = document
             .querySelectorAll(
                 'ytd-playlist-video-list-renderer #contents ytd-playlist-video-renderer'
             );
-        
+
         for (let node of nodes) {
             const deleteButton = document.createElement('button');
             deleteButton.textContent = '️🗑️';
