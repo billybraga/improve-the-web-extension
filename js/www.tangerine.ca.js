@@ -15,11 +15,11 @@
             const savings = result.accounts.find(x => x.type === "SAVINGS").number;
             const r = [];
             const now = new Date();
-            const monthEnd = new Date(now.getFullYear(), now.getMonth(), -1);
+            // next month start
+            const limit = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
             const start = new Date(now.valueOf() - 4 * 31 * 24 * 60 * 60 * 1000);
             const current = new Date(start);
-            while (current < monthEnd) {
-                console.log("Will load", current);
+            while (current < limit) {
                 const result = await loadAsync(current.getFullYear(), current.getMonth() + 1, chequing, savings);
                 console.log(result);
                 r.push.apply(r, result);
@@ -36,13 +36,14 @@
      * @param {string} savings
      */
     async function loadAsync(year, month, chequing, savings) {
+        console.log('Will load', year, month)
         const [chequingTransactions, savingsTransactions] = await Promise.all(
             [
                 // chequing
                 getTransactionsAsync(
                     chequing,
                     new Date(year, month - 1, 1),
-                    new Date(year, month - 1, 21)
+                    new Date(year, month - 1, 24)
                 ),
                 // savings
                 getTransactionsAsync(
@@ -55,7 +56,7 @@
 
         const result = [];
         for (const savingsTransaction of savingsTransactions) {
-            if (savingsTransaction.description === 'VEF Paiement - Carte de crédit Tangerine - TANGERINE CCRD') {
+                if (savingsTransaction.description === 'VEF Paiement - Carte de crédit Tangerine - TANGERINE CCRD') {
                 const chequingEntry = chequingTransactions.filter(x => x.date < savingsTransaction.date)[0];
                 if (!chequingEntry) {
                     console.error('Did not find checking entry', savingsTransaction.date);

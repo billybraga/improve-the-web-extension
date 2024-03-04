@@ -81,15 +81,6 @@ if (!window.__itwLoaded) {
                 updateVol();
             }, 150);
         }
-
-        const notifTitle = newState === 1
-            ? 'Playing'
-            : newState === 2
-                ? 'Paused'
-                : null;
-        if (notifTitle) {
-            notify(notifTitle, notifTitle, getVidTagVolume(), 5000);
-        }
     });
 
     function updateVol() {
@@ -157,6 +148,16 @@ if (!window.__itwLoaded) {
         e => {
             e.stopImmediatePropagation();
             targetVolume = getVidTagVolume();
+
+            const notifTitle = playerApi.getPlayerState() === 2
+                ? 'Playing'
+                : playerApi.getPlayerState() === 1
+                    ? 'Paused'
+                    : null;
+            if (notifTitle) {
+                notify(notifTitle, notifTitle, getVidTagVolume(), 5000);
+            }
+            
             // 1 is play, 2 is pause
             if (playerApi.getPlayerState() === 1) {
                 console.info("Will trigger pause after fade");
