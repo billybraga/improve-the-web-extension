@@ -44,12 +44,19 @@
         height: var(--header-height);
     }
 
-    /* put description in the middle of work items */
-    .other-form-sections {
-        float: left !important;
-        /*width: 45% !important;*/
-        /* make comments go right */
-        height: 100%;
+    /* Description and comments on the right */
+    .work-item-grid-ff-enabled.work-item-form-tab.first-column-wide {
+        grid-template-columns: minmax(40%, 50%) 1fr !important;
+    }
+    .work-item-form-first-section {
+        grid-column: 2 !important;
+    }
+    .work-item-form-discussion {
+        grid-column: 2 !important;
+    }
+    /* Rest on the left */
+    .work-item-form-right.other-form-sections {
+        grid-column: 1 !important;
     }
 
     .work-item-form-expanded-section-container {
@@ -65,7 +72,6 @@
     .work-item-form-header .work-item-header-command-bar {
         float: left;
     }
-
 }
 
 /* wide and not thin */
