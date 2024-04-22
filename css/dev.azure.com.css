@@ -57,6 +57,14 @@
     /* Rest on the left */
     .work-item-form-right.other-form-sections {
         grid-column: 1 !important;
+        grid-template-columns: 40% 60% !important;
+    }
+    /* ...with columns in child */
+    .work-item-form-right.other-form-sections .work-item-form-section:nth-child(1) {
+        grid-column: 1 !important;
+    }
+    .work-item-form-right.other-form-sections .work-item-form-section:nth-child(2) {
+        grid-column: 2 !important;
     }
 
     .work-item-form-expanded-section-container {

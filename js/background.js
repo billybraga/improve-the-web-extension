@@ -214,15 +214,19 @@ function sendCommandToTab(tab, message) {
 }
 
 const tabStatuses = {};
+chrome.tabs.onRemoved.addListener(function (tabId) {
+    delete tabStatuses[tabId];
+    console.log(`Deleted tab ${tabId} metadata because removed`);
+});
+
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (!changeInfo.status) {
-        console.log(`skipped improving tab because it has no change status`, changeInfo)
         return;
     }
-    
+
     if (changeInfo.status === 'unloaded') {
         delete tabStatuses[tabId];
-        console.log(`Deleted tab metadata for status unloaded`);
+        console.log(`Deleted tab ${tabId} metadata for status "${changeInfo.status}"`);
         return;
     }
 
@@ -245,26 +249,43 @@ function maybeLoadCssOnTabUpdated(status, app, tabId) {
     if (!app.hasCss) {
         return;
     }
-    
-    const shouldLoadCss = status === 'loading'
-        || status === 'complete' && !tabStatuses[tabId]?.loadedCss;
-    
+
+    tabStatuses[tabId] ??= {};
+
+    const shouldLoadCss = (status === 'loading' || status === 'complete')
+        && !tabStatuses[tabId]?.loadedCss;
+
     if (!shouldLoadCss) {
         console.log(`skipped adding css for ${app.host} status was ${status}`);
+        if (status === 'complete') {
+            // Make sure we load css on refresh
+            tabStatuses[tabId].loadedCss = false;
+        }
         return;
     }
-    
+
     chrome.scripting.insertCSS(
         {
             target: {tabId},
             files: [`css/${app.host}.css`],
         },
         () => {
-            console.log(`added css for ${app.host}`)
+            console.log(`added css for ${app.host}`);
         }
     );
-    
-    tabStatuses[tabId] = {...tabStatuses[tabId], loadedCss: true};
+
+    tabStatuses[tabId].loadedCss = true;
+}
+
+function addScript(app, tabId, name, func) {
+    chrome.scripting.executeScript(
+        {
+            target: {tabId},
+            func: func,
+        },
+        () => {
+            console.log(`added js for ${app.host}`)
+        });
 }
 
 function maybeLoadScriptOnTabUpdated(status, app, tabId) {
@@ -273,35 +294,14 @@ function maybeLoadScriptOnTabUpdated(status, app, tabId) {
     }
 
     if (app.hasScript) {
-        chrome.scripting.executeScript(
-            {
-                target: {tabId},
-                func: loadScript,
-            },
-            () => {
-                console.log(`added js for ${app.host}`)
-            });
+        addScript(app, tabId, "main", loadScript);
     }
 
     if (app.hasSound) {
-        chrome.scripting.executeScript(
-            {
-                target: {tabId},
-                func: loadSound,
-            },
-            () => {
-                console.log(`added sound js for ${app.host}`)
-            });
+        addScript(app, tabId, "sound", loadSound);
     }
 
     if (app.supportedCommandTypes.length) {
-        chrome.scripting.executeScript(
-            {
-                target: {tabId},
-                func: listen,
-            }, () => {
-                console.log(`added listen for ${app.host}`)
-            }
-        );
+        addScript(app, tabId, "listen", listen);
     }
 }

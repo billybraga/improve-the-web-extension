@@ -57,13 +57,29 @@ if (!window.__itwLoaded) {
             elems[i].classList.remove("dark-run-logs");
         }
     }
-    
+
     function sleep(time) {
         return new Promise((resolve) => setTimeout(resolve, time));
     }
-    
+
+    function sleepUntil(callback) {
+        const resolveIfCallback = resolve => {
+            if (callback()) {
+                resolve();
+            } else {
+                setTimeout(resolveIfCallback, 1000);
+            }
+        };
+        
+        return new Promise(resolveIfCallback);
+    }
+
     async function createPrPage() {
         let checkCount = 0;
+
+        await sleepUntil(() => document.querySelector('.repos-pr-create-header .version-dropdown')?.textContent.includes("feature/"));
+        
+        console.log("Will try auto create");
         
         for (let i = 0; i < 5; i++) {
             const workItemLinks = document.querySelectorAll('.region-createPullRequestOverviewExtensions a[href*="_workitems"]');
