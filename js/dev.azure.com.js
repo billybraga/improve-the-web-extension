@@ -67,7 +67,7 @@ if (!window.__itwLoaded) {
             if (callback()) {
                 resolve();
             } else {
-                setTimeout(resolveIfCallback, 1000);
+                setTimeout(() => resolveIfCallback(resolve), 1000);
             }
         };
         
