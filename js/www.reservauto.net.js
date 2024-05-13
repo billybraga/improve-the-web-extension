@@ -14,6 +14,10 @@ if (!window.__itwLoaded) {
         loadResults();
     }
 
+    if (location.href.includes('Scripts/Client/Stations/InfoStation.asp')) {
+        loadStation();
+    }
+
     const berriUqamName = "Berri-Uqam";
     const preferredModels = {
         Carnival: true,
@@ -88,7 +92,7 @@ if (!window.__itwLoaded) {
 
         let hasThatPreferredModel = {};
         let hasPromoVehicle = false;
-        
+
         for (let i = 0; i < inMontrealAndAvailable.length; i++) {
             const formatCar = (description) => {
                 const time = Math.round(car.time) + " min";
@@ -148,6 +152,29 @@ if (!window.__itwLoaded) {
         }
     }
 
+    async function loadStation() {
+        const params = new URLSearchParams(location.search);
+        const cityId = params.get('CityID');
+        const stationNb = params.get('StationNo');
+        const searchRequest = new URLSearchParams({
+            apiUrl: '/api/v2/Station',
+            content: JSON.stringify({
+                'BranchId': '1',
+                'CityId': cityId
+            }),
+        });
+        const apiResponse = await fetch(`/WCF/Core/FrontOfficeCoreService.svc/Get?${searchRequest.toString()}`);
+        const apiResult = await apiResponse.json();
+        const station = JSON.parse(apiResult.d)
+            .stations
+            .find(x => x.stationNb === stationNb);
+        const link = `https://maps.google.com/?q=${station.location.latitude},${station.location.longitude}`;
+        document
+            .getElementById('content')
+            .innerHTML += `<p><a target="_blank" href="${encodeURI(link)}">Go to Google Maps</a></p>`;
+        console.log(link);
+    }
+
     function getLongitude(point) {
         return point.lng;
     }
@@ -180,6 +207,16 @@ if (!window.__itwLoaded) {
 
     function createLatLng(lng, lat) {
         return {lat, lng};
+    }
+
+    async function waitUntil(evaluator) {
+        while (!evaluator()) {
+            await sleep(100);
+        }
+    }
+
+    function sleep(time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
     }
 
     function updateDistance(carStation) {
