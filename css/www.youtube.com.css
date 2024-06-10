@@ -1,29 +1,3 @@
-:root {
-    --vid-width: calc(100vw - 656px);
-}
-
-ytd-watch-flexy[flexy]:not([is-vertical-video_]) #columns.ytd-watch-flexy {
-    max-width: none !important;
-}
-
-ytd-watch-flexy[flexy]:not([is-vertical-video_]) #player-container-outer.ytd-watch-flexy {
-    max-width: none !important;
-}
-
-ytd-watch-flexy[flexy][is-two-columns_][is-extra-wide-video_]:not([is-vertical-video_]) #primary.ytd-watch-flexy,
-ytd-watch-flexy[flexy][is-two-columns_][is-four-three-to-sixteen-nine-video_] #primary.ytd-watch-flexy {
-    max-width: var(--vid-width) !important;
-}
-
-ytd-watch-flexy:not([is-vertical-video_]) #columns #movie_player .html5-video-container video.html5-main-video {
-    width: var(--vid-width) !important;
-    height: auto !important;
-}
-
-#columns .ytp-chrome-bottom {
-    width: calc(var(--vid-width) - 12px) !important;
-}
-
 ytd-expander[should-use-number-of-lines][collapsed]>#content.ytd-expander {
     display: initial !important;
     overflow: initial !important;
@@ -31,12 +5,3 @@ ytd-expander[should-use-number-of-lines][collapsed]>#content.ytd-expander {
     -webkit-box-orient: initial !important;
     -webkit-line-clamp: initial !important;
 }
-
-/*tp-yt-paper-button.ytd-expander {*/
-/*    display: none !important;*/
-/*}*/
-
-/* #movie_player .ytp-chrome-bottom > .ytp-progress-bar-container .ytp-progress-bar .ytp-chapter-hover-container {
-     width: calc(var(--vid-width) - 12px) !important;
- }
- */
