@@ -53,6 +53,7 @@
     }
     .work-item-form-first-section {
         grid-column: 2 !important;
+        min-width: 750px;
     }
     .work-item-form-discussion {
         grid-column: 2 !important;
