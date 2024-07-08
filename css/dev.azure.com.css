@@ -84,6 +84,12 @@
     .work-item-form-header .work-item-header-command-bar {
         float: left;
     }
+    
+    /* put the hover menu below */
+    .bolt-callout {
+        margin-top: 50px;
+        margin-left: -100px;
+    }
 }
 
 /* wide and not thin */
