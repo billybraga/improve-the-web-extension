@@ -86,10 +86,10 @@
     }
     
     /* put the hover menu below */
-    .bolt-callout {
+    .bolt-menu-portal .bolt-callout[id^=__bolt-menu] {
         margin-top: 50px;
         margin-left: -100px;
-    }
+    }    
 }
 
 /* wide and not thin */
