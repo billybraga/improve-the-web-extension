@@ -196,4 +196,9 @@
     .bolt-messagebar.severity-info .bolt-messagebar-content {
         padding: 6px;
     }
+
+    /* full screen mode */
+    .full-screen-mode .project-header {
+        display: none;
+    }
 }
