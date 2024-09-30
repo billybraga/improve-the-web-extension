@@ -89,7 +89,7 @@ function listen() {
 const appSpecs = [
     // YouTube before YouTube Music, because YouTube Music is always active
     createMediaAppSpec("www.youtube.com", true, true),
-    createMediaAppSpec("music.youtube.com", true, true, true),
+    createMediaAppSpec("music.youtube.com", true, false, true),
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
     createAppSpec("support.google.com", [], false, true),
