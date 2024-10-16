@@ -18,16 +18,20 @@
  * @param {boolean} [hasScript]
  * @param {boolean} [hasCss]
  * @param {boolean} [hasSound]
+ * @param {boolean} [scriptAllFrames]
+ * @param {boolean} [cssAllFrames]
  * @returns {AppSpec}
  */
-function createAppSpec(host, supportedCommandTypes, hasScript, hasCss, hasSound) {
+function createAppSpec(host, supportedCommandTypes, hasScript, hasCss, hasSound = false, scriptAllFrames = false, cssAllFrames = false) {
     return {
         url: `https://${host}`,
         host,
         supportedCommandTypes: supportedCommandTypes,
         hasScript,
         hasCss,
-        hasSound
+        hasSound,
+        scriptAllFrames,
+        cssAllFrames,
     };
 }
 
@@ -43,9 +47,15 @@ function createMediaAppSpec(url, hasScript, hasCss, hasSound) {
 }
 
 function loadScript() {
-    console.log("Loading js");
+    if (!location.host) {
+        console.log("Skipped loading js", location);
+        return;
+    }
+
+    const jsPath = `js/${location.host}.js`;
+    console.log("Loading js", { jsPath });
     const s = document.createElement('script');
-    s.src = chrome.runtime.getURL(`js/${location.host}.js`);
+    s.src = chrome.runtime.getURL(jsPath);
     s.onload = function () {
         this.remove();
     };
@@ -89,11 +99,11 @@ function listen() {
 const appSpecs = [
     // YouTube before YouTube Music, because YouTube Music is always active
     createMediaAppSpec("www.youtube.com", true, true),
-    createMediaAppSpec("music.youtube.com", true, true, true),
+    createMediaAppSpec("music.youtube.com", true, false, true),
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
     createAppSpec("support.google.com", [], false, true),
-    createAppSpec("dev.azure.com", [], true, true),
+    createAppSpec("dev.azure.com", [], true, true, false, true, true),
     createAppSpec("mail.google.com", [], false, true),
     createAppSpec("github.com", [], true, true),
     createAppSpec("www.tangerine.ca", [], true, false),
@@ -253,7 +263,7 @@ function maybeLoadCssOnTabUpdated(status, app, tabId) {
     tabStatuses[tabId] ??= {};
 
     const shouldLoadCss = (status === 'loading' || status === 'complete')
-        && !tabStatuses[tabId]?.loadedCss;
+        && (!tabStatuses[tabId]?.loadedCss || app.cssAllFrames);
 
     if (!shouldLoadCss) {
         console.log(`skipped adding css for ${app.host} status was ${status}`);
@@ -266,7 +276,10 @@ function maybeLoadCssOnTabUpdated(status, app, tabId) {
 
     chrome.scripting.insertCSS(
         {
-            target: {tabId},
+            target: {
+                tabId,
+                allFrames: app.cssAllFrames,
+            },
             files: [`css/${app.host}.css`],
         },
         () => {
@@ -277,10 +290,13 @@ function maybeLoadCssOnTabUpdated(status, app, tabId) {
     tabStatuses[tabId].loadedCss = true;
 }
 
-function addScript(app, tabId, name, func) {
+function addScript(app, tabId, name, func, allFrames) {
     chrome.scripting.executeScript(
         {
-            target: {tabId},
+            target: {
+                tabId,
+                allFrames: app.scriptAllFrames,
+            },
             func: func,
         },
         () => {

@@ -13,7 +13,8 @@
         "https://mail.google.com/*",
         "https://www.reservauto.net/*",
         "https://github.com/*",
-        "https://www.tangerine.ca/*"
+        "https://www.tangerine.ca/*",
+        "https://progidev.timehub.7pace.com/*"
     ],
     "permissions": [
         "scripting",
@@ -54,7 +55,8 @@
                 "js/www.reservauto.net.js",
                 "css/github.com.css",
                 "js/github.com.js",
-                "js/www.tangerine.ca.js"
+                "js/www.tangerine.ca.js",
+                "js/progidev.timehub.7pace.com.js"
             ],
             "matches": [
                 "https://music.youtube.com/*",
@@ -66,7 +68,8 @@
                 "https://mail.google.com/*",
                 "https://www.reservauto.net/*",
                 "https://github.com/*",
-                "https://www.tangerine.ca/*"
+                "https://www.tangerine.ca/*",
+                "https://progidev.timehub.7pace.com/*"
             ]
         }
     ],

@@ -23,6 +23,18 @@
     border-top: 1px solid rgba(0, 0, 0, .08);
 }
 
+[aria-describedby="timesheet-list-editor-dialog-container"] {
+    width: 900px !important;
+}
+
+[id*=remark] {
+    width: 450px !important;
+}
+
+.times-list-editor-remark {
+    width: 450px !important;
+}
+
 /* wide */
 @media only screen and (min-width: 1700px) {
     /* put important stuff on the right to read it from the center */

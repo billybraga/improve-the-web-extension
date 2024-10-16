@@ -9,10 +9,10 @@ if (!window.__itwLoaded) {
         }
     }
 
-    console.info("Loaded theme");
-    document.documentElement.removeAttribute('dark');
-    document.documentElement.setAttribute('light', 'true');
-    document.head.querySelector("meta[name=theme-color]").content = "#fff"
+    // console.info("Loaded theme");
+    // document.documentElement.removeAttribute('dark');
+    // document.documentElement.setAttribute('light', 'true');
+    // document.head.querySelector("meta[name=theme-color]").content = "#fff"
 
     console.info("Loaded fading");
 
