@@ -201,8 +201,9 @@ if (!window.__itwLoaded) {
             tabWindowId = event.data.tabWindowId;
 
             if (event.data.type === "volume_change") {
-                volChangeAudio.play().catch(e => console.error("Error playing sound", e));
                 const vol = handleVolumeCommand(event.data.arg);
+                volChangeAudio.volume = videoTag.volume;
+                volChangeAudio.play().catch(e => console.error("Error playing sound", e));
                 let playerState = getPlayerState();
                 const title = "Volume " + event.data.arg + " to " + vol.toFixed(volChangeRoundDigits) + "% (" + playerState.verb + ")";
                 notify(event.data.type, title, vol, 2000, false);

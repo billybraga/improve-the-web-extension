@@ -6,4 +6,12 @@ if (!window.__itwLoaded) {
         sidePane.style.cssText = '--pane-width:1000px';
         sidePane.classList.add('ext-loaded');
     }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const element = document.querySelector('#logs');
+        if (element) {
+            element.setAttribute('data-color-mode', 'light');
+            element.setAttribute('data-dark-theme', 'light');
+        }
+    });
 }
