@@ -129,6 +129,25 @@
         flex-direction: row !important;
     }
     
+    /*.dashboard-content {*/
+    /*    align-self: center !important;*/
+    /*}*/
+    
+    .full-size.region-page > .flex-column.full-size.vertical-layout {
+        align-self: center !important;
+        min-width: 1750px;
+        max-width: 100vw;
+        border-left: 1px solid rgba(0, 0, 0, .08);
+        border-right: 1px solid rgba(0, 0, 0, .08);
+    }
+    
+    .repos-pr-details-page {
+        width: 100vw;
+    }
+    
+    .region-header[role="navigation"] {
+    }
+    
     /* not too wide */
     /*.navigation-container+.flex-column {*/
     /*    align-items: end !important;*/
