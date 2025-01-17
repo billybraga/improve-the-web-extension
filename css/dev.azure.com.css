@@ -35,13 +35,25 @@
     width: 450px !important;
 }
 
+.comment-content span {
+    /*background: none !important;*/
+}
+
+.work-item-form-control-content span {
+    /*background: none !important;*/
+}
+
+.work-item-form-control-content pre {
+    background: none !important;
+}
+
 /* wide */
-@media only screen and (min-width: 1700px) {
+@media only screen and (min-width: 1800px) {
     /* put important stuff on the right to read it from the center */
-    
     .work-item-form-section.wide, .wit-discussion-group.wide {
         /*width: 55% !important;*/
     }
+
     .work-item-form-header > .secondary-text > .flex-row {
         width: 90%;
     }
@@ -63,22 +75,27 @@
     .work-item-grid-ff-enabled.work-item-form-tab.first-column-wide {
         grid-template-columns: minmax(40%, 50%) 1fr !important;
     }
+
     .work-item-form-first-section {
         grid-column: 2 !important;
         min-width: 1000px;
     }
+
     .work-item-form-discussion {
         grid-column: 2 !important;
     }
+
     /* Rest on the left */
     .work-item-form-right.other-form-sections {
         grid-column: 1 !important;
         grid-template-columns: 40% 60% !important;
     }
+
     /* ...with columns in child */
     .work-item-form-right.other-form-sections .work-item-form-section:nth-child(1) {
         grid-column: 1 !important;
     }
+
     .work-item-form-right.other-form-sections .work-item-form-section:nth-child(2) {
         grid-column: 2 !important;
     }
@@ -96,43 +113,43 @@
     .work-item-form-header .work-item-header-command-bar {
         float: left;
     }
-    
+
     /* put the hover menu below */
     .bolt-menu-portal .bolt-callout[id^=__bolt-menu] {
         margin-top: 50px;
         margin-left: -100px;
-    }    
+    }
 }
 
 /* wide and not thin */
-@media only screen and (min-width: 1700px) and (min-height: 900px) {
+@media only screen and (min-width: 1800px) and (min-height: 900px) {
     /* put menu on top */
-    .full-size.region-page > .full-size.vertical-layout > .project-header+div {
+    .full-size.region-page > .full-size.vertical-layout > .project-header + div {
         flex-direction: column !important;
     }
 
     .navigation-container {
         flex-direction: row !important;
     }
-    
+
     .project-navigation {
         flex-direction: row !important;
         justify-content: center !important;
     }
-    
+
     .navigation-section {
         flex-direction: row !important;
         flex-grow: unset !important;
     }
-    
+
+    .navigation-section .navigation-element .navigation-text {
+        display: none !important;
+    }
+
     .hub-group-container.expanded-container.displayed-container {
         flex-direction: row !important;
     }
-    
-    /*.dashboard-content {*/
-    /*    align-self: center !important;*/
-    /*}*/
-    
+
     .full-size.region-page > .flex-column.full-size.vertical-layout {
         align-self: center !important;
         min-width: 1750px;
@@ -140,25 +157,27 @@
         border-left: 1px solid rgba(0, 0, 0, .08);
         border-right: 1px solid rgba(0, 0, 0, .08);
     }
-    
+
     .repos-pr-details-page {
         width: 100vw;
     }
-    
-    .region-header[role="navigation"] {
+
+    .vss-Splitter--container.vss-Splitter--container-row .vss-Splitter--pane-flexible {
+        width: unset !important;
     }
-    
+
+    /*.dashboard-content {*/
+    /*    align-self: center !important;*/
+    /*}*/
     /* not too wide */
     /*.navigation-container+.flex-column {*/
     /*    align-items: end !important;*/
     /*    justify-items: end !important;*/
     /*    background-color: rgba(var(--palette-neutral-2,248, 248, 248),1) !important;*/
     /*}*/
-    
     /*#skip-to-main-content > div.flex-column {*/
     /*    margin-left: 0 !important;*/
     /*}*/
-    
     /*#skip-to-main-content > div.flex-column.pipelines-page {*/
     /*    margin-left: 30% !important;*/
     /*}*/
@@ -179,51 +198,63 @@
         top: -22px;
         z-index: 1000 !important;
     }
+
     .bolt-page > .bolt-header.wit-sprints-header-row {
         position: fixed;
         left: 450px;
         right: 444px;
         top: -35px;
     }
+
     .bolt-page > .bolt-header.wit-sprints-header-row .bolt-header-title-area {
         margin-top: 20px;
     }
+
     .region-page .custom-scrollbar > .bolt-header {
         position: fixed;
         left: 625px;
         right: 425px;
     }
+
     .log-header {
         margin-top: 14px;
         right: 444px;
         top: -35px;
     }
+
     .log-header .bolt-header-title-area {
         margin-top: 14px;
     }
+
     .bolt-header-commandbar {
         margin-top: 7px;
     }
+
     .region-page .custom-scrollbar > .repos-pr-header, .region-page .custom-scrollbar > .repos-pr-create-header {
         right: 445px;
         left: 620px;
         top: -10px;
     }
+
     .repos-pr-header .pr-secondary-title-row, .repos-pr-create-header > .flex-column > .flex-row {
         margin-top: 22px;
     }
+
     .repos-commit-title-row {
         margin-bottom: 15px;
     }
+
     .project-header {
         height: 55px;
     }
+
     .bolt-messagebar.severity-info {
         position: absolute;
         top: 4px;
         z-index: 111;
         left: 337px;
     }
+
     .bolt-messagebar.severity-info .bolt-messagebar-content {
         padding: 6px;
     }

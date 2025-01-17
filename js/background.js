@@ -107,6 +107,7 @@ const appSpecs = [
     createAppSpec("mail.google.com", [], false, true),
     createAppSpec("github.com", [], true, true),
     createAppSpec("www.tangerine.ca", [], true, false),
+    createAppSpec("progidev.timehub.7pace.com", [], true, true),
 ];
 
 let notifs = {};

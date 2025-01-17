@@ -56,7 +56,8 @@
                 "css/github.com.css",
                 "js/github.com.js",
                 "js/www.tangerine.ca.js",
-                "js/progidev.timehub.7pace.com.js"
+                "js/progidev.timehub.7pace.com.js",
+                "css/progidev.timehub.7pace.com.css"
             ],
             "matches": [
                 "https://music.youtube.com/*",
