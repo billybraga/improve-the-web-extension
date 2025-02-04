@@ -98,7 +98,7 @@ function listen() {
 
 const appSpecs = [
     // YouTube before YouTube Music, because YouTube Music is always active
-    createMediaAppSpec("www.youtube.com", true, true),
+    createMediaAppSpec("www.youtube.com", true, true, false),
     createMediaAppSpec("music.youtube.com", true, false, true),
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
@@ -108,6 +108,7 @@ const appSpecs = [
     createAppSpec("github.com", [], true, true),
     createAppSpec("www.tangerine.ca", [], true, false),
     createAppSpec("progidev.timehub.7pace.com", [], true, true),
+    createAppSpec("console.cloud.google.com", [], false, true)
 ];
 
 let notifs = {};

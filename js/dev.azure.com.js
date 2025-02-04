@@ -225,7 +225,7 @@ if (!window.__itwLoaded) {
     }
 
     function tryAugmentWorkItem(tryIndex) {
-        document.querySelectorAll('.work-item-form-control-content span[style*="background-color"]').forEach(e => {
+        document.querySelectorAll('.work-item-form-control-content span[style*="background-color"], .work-item-form-page-content .comment-content span').forEach(e => {
             
             e.style.background = "none";
         });
