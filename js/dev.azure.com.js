@@ -159,14 +159,16 @@ if (!window.__itwLoaded) {
         }
     }
 
-    function augmentWorkItem(parent) {
+    function augmentWorkItem(parentParam) {
+        const parent = parentParam ?? document.body;
+        
         if (parent.dataset['__itw_done']) {
             return;
         }
 
         parent.dataset['__itw_done'] = '1';
 
-        tryAugmentWorkItem(parent ?? document.body, 0);
+        tryAugmentWorkItem(parent, 0);
     }
 
     function tryAugmentWorkItem(parent, tryIndex) {
