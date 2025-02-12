@@ -1,20 +1,7 @@
-/*.srp {*/
-/*    --center-abs-margin: calc(50vw - (var(--center-width) / 2)) !important;*/
-/*}*/
-
 body {
     margin: 0 calc((100vw - 1016px) / 2) !important;
 }
 
 g-scrolling-carousel [role=tablist] {
     margin-left: 20px !important;
-}
-
-@media (min-width: 48.1875rem) {
-    .primary-container {
-        margin: auto;
-    }
-    #main > div {
-        overflow-x: hidden;
-    }
 }

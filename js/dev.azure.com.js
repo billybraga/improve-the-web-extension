@@ -2,21 +2,19 @@ if (!window.__itwLoaded) {
     window.__itwLoaded = true;
     const CREATING_PR_SESSION_KEY = '_cpr';
 
-    const SPRINT_PAGE = 'sprint';
+    const DASHBOARD_PAGE = 'dashboard';
     const WORK_ITEM_PAGE = 'work item';
     const BUILD_RESULTS_PAGE = 'build results';
     const CREATE_PR_PAGE = 'create pr';
     const EDIT_PR_PAGE = 'edit pr';
     const fixers = {
-        [SPRINT_PAGE]: augmentSprint,
+        [DASHBOARD_PAGE]: fixDashboard,
         [WORK_ITEM_PAGE]: augmentWorkItem,
         [BUILD_RESULTS_PAGE]: fixBuildResults,
         [CREATE_PR_PAGE]: createPrPage,
         [EDIT_PR_PAGE]: editPrPage,
     }
     let lastHref;
-    let sprintAugmented = false;
-    let lastPage = null;
     setInterval(checkPage, 100);
 
     function checkPage() {
@@ -29,12 +27,8 @@ if (!window.__itwLoaded) {
 
         if (lastHref.indexOf("_build/results") !== -1) {
             page = BUILD_RESULTS_PAGE;
-        } else if (lastHref.indexOf("_sprints/taskboard") !== -1) {
-            if (lastHref.indexOf("workitem=") === -1) {
-                page = SPRINT_PAGE;
-            } else {
-                page = WORK_ITEM_PAGE;
-            }
+        } else if (lastHref.indexOf("_dashboards/dashboard") !== -1) {
+            page = DASHBOARD_PAGE;
         } else if (lastHref.indexOf("_workitems/edit") !== -1) {
             page = WORK_ITEM_PAGE;
         } else if (lastHref.indexOf("/pullrequestcreate") !== -1) {
@@ -49,11 +43,24 @@ if (!window.__itwLoaded) {
         }
     }
 
+    function fixDashboard() {
+        if (lastHref.indexOf('_dashboards/dashboard') === -1) {
+            return;
+        }
+
+        const dialogElement = document.querySelector('.work-item-form-dialog');
+        if (dialogElement) {
+            augmentWorkItem(dialogElement);
+        }
+
+        setTimeout(fixDashboard, 500);
+    }
+
     function fixBuildResults() {
         console.info("fix elems");
-        var elems = document.querySelectorAll(".dark-run-logs");
+        const elems = document.querySelectorAll(".dark-run-logs");
 
-        for (var i = 0; i < elems.length; i++) {
+        for (let i = 0; i < elems.length; i++) {
             elems[i].classList.remove("dark-run-logs");
         }
     }
@@ -152,91 +159,28 @@ if (!window.__itwLoaded) {
         }
     }
 
-    function augmentSprint() {
-        if (sprintAugmented) {
+    function augmentWorkItem(parent) {
+        if (parent.dataset['__itw_done']) {
             return;
         }
-        sprintAugmented = true;
-        console.info("augmentSprint");
-        const versionParts = location.pathname.split('.');
-        const versionStr = versionParts.pop();
-        let minor = parseInt(versionStr);
-        if (isNaN(minor)) {
-            console.error(versionStr + ' is NaN');
-            return;
-        }
-        const bntNextHtml = `
-    <button class="bolt-split-button-main bolt-button bolt-icon-button enabled bolt-focus-treatment" role="button" type="button">
-    <span class="bolt-button-text body-m">Next &gt;</span>
-    <span aria-hidden="true" class="fabric-icon flex-noshrink left-icon medium"></span>
-    </button>`;
-        const bntPrevHtml = `
-    <button class="bolt-split-button-main bolt-button bolt-icon-button enabled bolt-focus-treatment" role="button" type="button">
-    <span aria-hidden="true" class="fabric-icon flex-noshrink left-icon medium"></span>
-    <span class="bolt-button-text body-m">&lt; Previous</span>
-    </button>`;
 
-        function updateVersion(inc) {
-            minor += inc;
-            // 0  1        2        3        4         5   6        7
-            // '' ProgiDev ProgiOne _sprints taskboard Dev ProgiOne v%200.19
-            let url = versionParts
-                .concat([minor.toString()])
-                .join('.');
-            let urlParts = url.split('/');
-            const iteration = decodeURIComponent(urlParts[urlParts.length - 2])
-                + '/'
-                + decodeURIComponent(urlParts[urlParts.length - 1]);
-            const project = decodeURIComponent(urlParts[2]);
-            const pivot = decodeURIComponent(urlParts[4]);
-            const team = decodeURIComponent(urlParts[5]);
-            const state = {
-                "vssNavigationState": {
-                    "state": {
-                        "project": project,
-                        "pivot": pivot,
-                        "teamName": team,
-                        "viewname": "content",
-                        "iteration": iteration
-                    },
-                    "routeId": "ms.vss-work-web.new-sprints-content-route",
-                    "data": {},
-                    "url": url
-                }
-            };
-            // history.pushState(state, "", url);
-            navigation.navigate(url);
-        }
+        parent.dataset['__itw_done'] = '1';
 
-        const parent = document.querySelector('.sprints-tabbar-header-commandbar[role=menubar] > .sprints-tabbar-header-commandbar')
-            || document.querySelector('.ms-CommandBar-sideCommands');
-        const btnNextDiv = document.createElement("div");
-        btnNextDiv.innerHTML = bntNextHtml;
-        btnNextDiv.onclick = () => updateVersion(2);
-        parent.prepend(btnNextDiv);
-        const btnPrevDiv = document.createElement("div");
-        btnPrevDiv.innerHTML = bntPrevHtml;
-        btnPrevDiv.onclick = () => updateVersion(-2);
-        parent.prepend(btnPrevDiv);
+        tryAugmentWorkItem(parent ?? document.body, 0);
     }
 
-    function augmentWorkItem() {
-        tryAugmentWorkItem(0);
-    }
-
-    function tryAugmentWorkItem(tryIndex) {
-        document.querySelectorAll('.work-item-form-control-content span[style*="background-color"], .work-item-form-page-content .comment-content span').forEach(e => {
-            
+    function tryAugmentWorkItem(parent, tryIndex) {
+        parent.querySelectorAll('.work-item-form-control-content span[style*="background-color"], .work-item-form-page-content .comment-content span').forEach(e => {
             e.style.background = "none";
         });
 
-        const wiElem = document.querySelector('.work-item-form-dialog .file-drop-zone-container')
-            || document.querySelector('[role=main] .file-drop-zone-container');
+        const wiElem = parent.querySelector('.work-item-form-dialog .file-drop-zone-container')
+            || parent.querySelector('[role=main] .file-drop-zone-container');
 
         if (wiElem) {
             addTitle(wiElem);
         } else if (tryIndex < 3) {
-            setTimeout(tryAugmentWorkItem.bind(null, tryIndex++), 50);
+            setTimeout(tryAugmentWorkItem.bind(null, parent, tryIndex++), 50 * tryIndex);
         } else {
             console.error('Did not find wiElem');
         }
@@ -252,6 +196,7 @@ if (!window.__itwLoaded) {
         const wi = wiElem[reactKey].children[0]._owner.stateNode.state.values.workItem;
         const headerTextParent = wiElem.querySelector('.work-item-form-header .secondary-text .flex-row');
         const newTextElem = document.createElement('input');
+        newTextElem.id = 'title-input';
         newTextElem.style.marginLeft = '10px';
         newTextElem.style.border = 'none';
         newTextElem.style.width = '85%';
