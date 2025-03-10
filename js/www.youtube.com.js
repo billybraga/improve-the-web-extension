@@ -13,7 +13,7 @@ if (!window.__itwLoaded) {
         }
         lastHref = location.href;
         console.log("check page");
-        
+
         if (location.href.indexOf("/playlist") !== -1) {
             await loadWatchlistPage();
         }
@@ -22,13 +22,20 @@ if (!window.__itwLoaded) {
     function sleep(time) {
         return new Promise((resolve) => setTimeout(resolve, time));
     }
-    
+
     async function nextFrame() {
         return new Promise(resolve => requestAnimationFrame(resolve));
     }
 
     async function loadWatchlistPage() {
+
+        if (window.__itwWatchListLoaded) {
+            console.log("skipping watchlist page");
+            return;
+        }
+
         console.log("watchlist page");
+        window.__itwWatchListLoaded = true;
 
         await sleep(1000);
 

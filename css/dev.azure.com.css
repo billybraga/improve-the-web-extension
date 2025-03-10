@@ -198,7 +198,7 @@
     /*    border-right: 1px solid rgba(0, 0, 0, .08);*/
     /*}*/
     
-    .repos-pr-details-page {
+    .repos-pr-details-page, .repos-changes-explorer-splitter {
         width: 100vw;
     }
 
