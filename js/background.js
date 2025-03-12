@@ -108,7 +108,8 @@ const appSpecs = [
     createAppSpec("github.com", [], true, true),
     createAppSpec("www.tangerine.ca", [], true, false),
     createAppSpec("progidev.timehub.7pace.com", [], true, true),
-    createAppSpec("console.cloud.google.com", [], false, true)
+    createAppSpec("console.cloud.google.com", [], false, true),
+    createAppSpec("doc.progi.com", [], false, true)
 ];
 
 let notifs = {};
