@@ -9,6 +9,6 @@
 /* wide */
 @media only screen and (min-width: 1700px) {
     div:not(.ext-loaded):has(> div > #repos-file-tree) {
-        --pane-width: 1000px !important;
+        --pane-width: min(800px, 40vw) !important;
     }
 }

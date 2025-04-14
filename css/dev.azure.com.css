@@ -127,6 +127,11 @@
         margin-top: 50px;
         margin-left: -100px;
     }
+    
+    /* wiql editor */
+    #__bolt-panel-1 .bolt-panel-callout-content {
+        width: 50vw !important;
+    }
 }
 
 /* wide and not thin */
@@ -204,6 +209,10 @@
 
     .vss-Splitter--container.vss-Splitter--container-row .vss-Splitter--pane-flexible {
         width: unset !important;
+    }
+    
+    .full-size .run-logs-view {
+        width: 100vw !important;
     }
 }
 
@@ -285,6 +294,9 @@
 
     /* full screen mode */
     .full-screen-mode .project-header {
+        display: none;
+    }
+    .full-screen-mode .bolt-header-with-commandbar:not(.boards-tabs-header) {
         display: none;
     }
 }
