@@ -155,8 +155,15 @@
         flex-grow: unset !important;
     }
 
-    .navigation-section .navigation-element .navigation-text {
+    /* Section */
+    .navigation-section .hub-group.navigation-element .navigation-text {
         display: none !important;
+    }
+
+    /* Page in section */
+    .navigation-section .hub.navigation-element .navigation-text {
+        max-width: 17px !important;
+        text-overflow: initial !important;
     }
 
     .hub-group-container.expanded-container.displayed-container {

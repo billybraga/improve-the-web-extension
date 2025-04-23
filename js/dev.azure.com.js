@@ -121,6 +121,45 @@ if (!window.__itwLoaded) {
     }
 
     async function editPrPage() {
+        await Promise.all([
+            tryHandleFixEditor(),
+            tryHandleAutoPr(),
+        ]);
+    }
+
+    async function tryHandleFixEditor() {
+        for (let i = 0; i < 5; i++) {
+            let errors = 0;
+            const editorElements = document.querySelectorAll('.monaco-editor[data-uri]');
+            if (editorElements.length === 0) {
+                errors++;
+                console.log('Found no editors');
+            }
+            editorElements.forEach(editorElement => {
+                const path = editorElement.dataset.uri.replace('inmemory://model', '');
+                if (!path.endsWith('.vue')) {
+                    return;
+                }
+                
+                const editors = monaco.editor.getModels().filter(x => x._associatedResource.path === path);
+                if (editors.length === 0) {
+                    console.warn(`Did not find editor for ${path}`);
+                    errors++;
+                    return;
+                }
+
+                editors.forEach(e => monaco.editor.setModelLanguage(e, "html"));
+            });
+
+            if (errors === 0) {
+                return;
+            }
+
+            await sleep(250);
+        }
+    }
+
+    async function tryHandleAutoPr() {
         if (sessionStorage[CREATING_PR_SESSION_KEY] !== 'true') {
             return;
         }
@@ -161,7 +200,7 @@ if (!window.__itwLoaded) {
 
     function augmentWorkItem(parentParam) {
         const parent = parentParam ?? document.body;
-        
+
         if (parent.dataset['__itw_done']) {
             return;
         }
