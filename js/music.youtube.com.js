@@ -1,6 +1,29 @@
 if (!window.__itwLoaded) {
     window.__itwLoaded = true;
 
+    const volumeLevels = [0, 1, 2, 3, 5, 8, 11, 15, 19, 23, 28, 33, 38, 43, 49, 54, 60, 67, 73, 80, 86, 93, 100];
+    const getAdjustedVolume = (volume, offset = 0) => {
+        const index = getVolumeLevelIndex(volume);
+        const effectiveIndex = Math.max(
+            0,
+            Math.min(
+                volumeLevels.length - 1,
+                index + offset
+            )
+        );
+        return volumeLevels[effectiveIndex];
+    }
+
+    const getVolumeLevelIndex = (volume) => {
+        for (let i = 0; i < volumeLevels.length; i++) {
+            if (volumeLevels[i] > volume) {
+                return Math.max(0, i - 1);
+            }
+        }
+
+        return volumeLevels.length - 1;
+    }
+
     const debugLogs = false;
 
     function logDebug() {
@@ -25,10 +48,10 @@ if (!window.__itwLoaded) {
     const videoTag = document.getElementsByTagName("video")[0];
     const playerApi = document.getElementById("player").playerApi;
     const volumeSlider = document.getElementById('volume-slider');
-    
+
     /** @var {HTMLMediaElement} volChangeAudio */
     const volChangeAudio = document.getElementById('vol-change-sound');
-    
+
     let targetVolume = 50;
     let expectedChangeVolumeEventCount = 0;
     let tabIndex = -1;
@@ -112,7 +135,7 @@ if (!window.__itwLoaded) {
         } else {
             logDebug("Setting temp volume", newVolume);
         }
-        const intVol = Math.max(1, Math.round(newVolume));
+        const intVol = getAdjustedVolume(newVolume);
         expectedChangeVolumeEventCount++;
         playerApi.setVolume(intVol);
         volumeSlider.value = intVol;
@@ -157,7 +180,7 @@ if (!window.__itwLoaded) {
             if (notifTitle) {
                 notify(notifTitle, notifTitle, getVidTagVolume(), 5000);
             }
-            
+
             // 1 is play, 2 is pause
             if (playerApi.getPlayerState() === 1) {
                 console.info("Will trigger pause after fade");
@@ -245,24 +268,8 @@ if (!window.__itwLoaded) {
     function handleVolumeCommand(direction) {
         const startVol = getVidTagVolume();
         const unit = direction === 'down' ? -1 : 1;
-        const relativeChange = unit * Math.max(
-            minVolChange,
-            roundN(
-                (volChangeMinStep + (4 * startVol / 100.0)),
-                volChangeRoundDigits
-            )
-        );
-        const newVol = roundN(
-            Math.min(
-                100,
-                Math.max(
-                    0,
-                    startVol + relativeChange
-                )
-            ),
-            volChangeRoundDigits
-        );
-        console.info(`will change volume by ${relativeChange}, from ${startVol} to ${newVol}`);
+        const newVol = getAdjustedVolume(startVol, unit);
+        console.info(`will change volume from ${startVol} to ${newVol}`);
         setVolume(newVol);
         localStorage["__ytmVol"] = newVol.toString();
         return newVol;
