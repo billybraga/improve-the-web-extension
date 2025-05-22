@@ -1,17 +1,37 @@
+span.bright {
+    filter: brightness(1) !important;
+}
+
 .ansifg-c {
-    color: #35707f;
+    color: #35707f !important;
 }
 
 .ansifg-bl {
-    color: #37668a;
+    color: #37668a !important;
 }
 
-.bolt-list  {
+.ansifg-y {
+    color: #b8b761 !important;
+}
+
+.ansifg-w {
+    color: #888888 !important;
+}
+
+.ansifg-r {
+    color: #af474f !important;
+}
+
+.backlog-tree.bolt-list {
     user-select: initial !important;
 }
 
-.bolt-list .bolt-table-cell-content-with-link {
+.backlog-tree.bolt-list td {
     user-select: none !important;
+}
+
+.backlog-tree.bolt-list td[data-column-index='2'] {
+    user-select: initial !important;
 }
 
 .wit-card:focus-within .card-context-menu {
