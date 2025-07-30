@@ -180,14 +180,22 @@ span.bright {
         display: none !important;
     }
 
-    /* Page in section */
+    /* Displayed section */
+    .hub-group-container.expanded-container.displayed-container {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+
+    /* Displayed section items container */
+    .hub-group-container.expanded-container.displayed-container div[role=menu] {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+
+    /* Item text in section */
     .navigation-section .hub.navigation-element .navigation-text {
         max-width: 17px !important;
         text-overflow: initial !important;
-    }
-
-    .hub-group-container.expanded-container.displayed-container {
-        flex-direction: row !important;
     }
 
     .full-size.region-page > .flex-column.full-size.vertical-layout {
@@ -233,7 +241,7 @@ span.bright {
     .repos-pr-details-page, .repos-changes-explorer-splitter {
         width: 100vw;
     }
-
+    
     .vss-Splitter--container.vss-Splitter--container-row .vss-Splitter--pane-flexible {
         width: unset !important;
     }

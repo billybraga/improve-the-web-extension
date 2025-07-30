@@ -16,7 +16,8 @@
         "https://www.tangerine.ca/*",
         "https://progidev.timehub.7pace.com/*",
         "https://console.cloud.google.com/*",
-        "https://doc.progi.com/*"
+        "https://doc.progi.com/*",
+        "https://ms-devlabs.gallerycdn.vsassets.io/*"
     ],
     "permissions": [
         "scripting",
@@ -61,7 +62,8 @@
                 "js/progidev.timehub.7pace.com.js",
                 "css/progidev.timehub.7pace.com.css",
                 "css/console.cloud.google.com.css",
-                "css/doc.progi.com.css"
+                "css/doc.progi.com.css",
+                "css/ms-devlabs.gallerycdn.vsassets.io.css"
             ],
             "matches": [
                 "https://music.youtube.com/*",
@@ -76,7 +78,8 @@
                 "https://www.tangerine.ca/*",
                 "https://progidev.timehub.7pace.com/*",
                 "https://console.cloud.google.com/*",
-                "https://doc.progi.com/*"
+                "https://doc.progi.com/*",
+                "https://ms-devlabs.gallerycdn.vsassets.io/*"
             ]
         }
     ],
