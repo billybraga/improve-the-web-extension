@@ -17,7 +17,8 @@
         "https://progidev.timehub.7pace.com/*",
         "https://console.cloud.google.com/*",
         "https://doc.progi.com/*",
-        "https://ms-devlabs.gallerycdn.vsassets.io/*"
+        "https://ms-devlabs.gallerycdn.vsassets.io/*",
+        "https://7pace.gallerycdn.vsassets.io/*"
     ],
     "permissions": [
         "scripting",
@@ -79,7 +80,8 @@
                 "https://progidev.timehub.7pace.com/*",
                 "https://console.cloud.google.com/*",
                 "https://doc.progi.com/*",
-                "https://ms-devlabs.gallerycdn.vsassets.io/*"
+                "https://ms-devlabs.gallerycdn.vsassets.io/*",
+                "https://7pace.gallerycdn.vsassets.io/*"
             ]
         }
     ],

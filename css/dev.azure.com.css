@@ -1,3 +1,9 @@
+/* 7pace */
+#panelRoot div > button:nth-child(1) {
+    display: none !important;
+}
+/* end 7pace */
+
 span.bright {
     filter: brightness(1) !important;
 }

@@ -140,7 +140,7 @@ if (!window.__itwLoaded) {
                 if (!path.endsWith('.vue')) {
                     return;
                 }
-                
+
                 const editors = monaco.editor.getModels().filter(x => x._associatedResource.path === path);
                 if (editors.length === 0) {
                     console.warn(`Did not find editor for ${path}`);

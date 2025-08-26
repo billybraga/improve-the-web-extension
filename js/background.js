@@ -103,13 +103,13 @@ const appSpecs = [
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
     createAppSpec("support.google.com", [], false, true),
-    createAppSpec("dev.azure.com", [], true, true, false, true, true),
+    createAppSpec("dev.azure.com", [], true, true, false, false, true),
     createAppSpec("mail.google.com", [], false, true),
     createAppSpec("github.com", [], true, true),
     createAppSpec("www.tangerine.ca", [], true, false),
     createAppSpec("progidev.timehub.7pace.com", [], true, true),
     createAppSpec("console.cloud.google.com", [], false, true),
-    createAppSpec("doc.progi.com", [], false, true)
+    createAppSpec("doc.progi.com", [], false, true),
 ];
 
 let notifs = {};
@@ -293,7 +293,7 @@ function maybeLoadCssOnTabUpdated(status, app, tabId) {
     tabStatuses[tabId].loadedCss = true;
 }
 
-function addScript(app, tabId, name, func, allFrames) {
+function addScript(app, tabId, name, func) {
     chrome.scripting.executeScript(
         {
             target: {
