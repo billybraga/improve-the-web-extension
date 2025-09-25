@@ -50,7 +50,7 @@ if (!window.__itwLoaded) {
 
         const dialogElement = document.querySelector('.work-item-form-dialog');
         if (dialogElement) {
-            augmentWorkItem(dialogElement);
+            augmentWorkItem(dialogElement, true);
         }
 
         setTimeout(fixDashboard, 500);
@@ -198,7 +198,7 @@ if (!window.__itwLoaded) {
         }
     }
 
-    function augmentWorkItem(parentParam) {
+    function augmentWorkItem(parentParam, injectCss) {
         const parent = parentParam ?? document.body;
 
         if (parent.dataset['__itw_done']) {
@@ -208,6 +208,15 @@ if (!window.__itwLoaded) {
         parent.dataset['__itw_done'] = '1';
 
         tryAugmentWorkItem(parent, 0);
+
+        if (injectCss) {
+            window.postMessage(
+                {
+                    type: "loadCss",
+                    host: "dev.azure.com",
+                    allFrames: true,
+                });
+        }
     }
 
     function tryAugmentWorkItem(parent, tryIndex) {

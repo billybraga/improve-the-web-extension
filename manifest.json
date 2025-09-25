@@ -18,7 +18,8 @@
         "https://console.cloud.google.com/*",
         "https://doc.progi.com/*",
         "https://ms-devlabs.gallerycdn.vsassets.io/*",
-        "https://7pace.gallerycdn.vsassets.io/*"
+        "https://7pace.gallerycdn.vsassets.io/*",
+        "https://campus.progi.com/*"
     ],
     "permissions": [
         "scripting",
@@ -30,7 +31,8 @@
             "https://music.youtube.com/*",
             "https://www.youtube.com/*",
             "https://www.reservauto.net/*",
-            "https://github.com/*"
+            "https://github.com/*",
+            "https://dev.azure.com/*"
         ]
     },
     "content_scripts": [
@@ -64,7 +66,8 @@
                 "css/progidev.timehub.7pace.com.css",
                 "css/console.cloud.google.com.css",
                 "css/doc.progi.com.css",
-                "css/ms-devlabs.gallerycdn.vsassets.io.css"
+                "css/ms-devlabs.gallerycdn.vsassets.io.css",
+                "js/campus.progi.com.js"
             ],
             "matches": [
                 "https://music.youtube.com/*",
@@ -81,7 +84,8 @@
                 "https://console.cloud.google.com/*",
                 "https://doc.progi.com/*",
                 "https://ms-devlabs.gallerycdn.vsassets.io/*",
-                "https://7pace.gallerycdn.vsassets.io/*"
+                "https://7pace.gallerycdn.vsassets.io/*",
+                "https://campus.progi.com/*"
             ]
         }
     ],

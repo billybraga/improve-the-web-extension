@@ -53,7 +53,7 @@ function loadScript() {
     }
 
     const jsPath = `js/${location.host}.js`;
-    console.log("Loading js", { jsPath });
+    console.log("Loading js", {jsPath});
     const s = document.createElement('script');
     s.src = chrome.runtime.getURL(jsPath);
     s.onload = function () {
@@ -110,6 +110,7 @@ const appSpecs = [
     createAppSpec("progidev.timehub.7pace.com", [], true, true),
     createAppSpec("console.cloud.google.com", [], false, true),
     createAppSpec("doc.progi.com", [], false, true),
+    createAppSpec("campus.progi.com", [], true, false),
 ];
 
 let notifs = {};
@@ -133,11 +134,16 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
     );
 });
 
-chrome.runtime.onMessage.addListener(function (message) {
-    if (message.type !== "notif") {
-        return;
+chrome.runtime.onMessage.addListener(function (message, sender) {
+    if (message.type === "notif") {
+        handleNotifMessage(message);
     }
+    if (message.type === "loadCss") {
+        loadCss(sender.tab.id, message.host, message.allFrames);
+    }
+});
 
+function handleNotifMessage(message) {
     const notifId = message.notifId;
     const notifOptions = message.notif;
     const notifTimeMs = message.notifTimeMs || 2000;
@@ -190,7 +196,7 @@ chrome.runtime.onMessage.addListener(function (message) {
             tabWindowId: message.tabWindowId,
         };
     }
-});
+}
 
 chrome.commands.onCommand.addListener(async function (command) {
     const parts = command.split('-');
@@ -277,20 +283,24 @@ function maybeLoadCssOnTabUpdated(status, app, tabId) {
         return;
     }
 
+    loadCss(tabId, app.host, app.cssAllFrames);
+
+    tabStatuses[tabId].loadedCss = true;
+}
+
+function loadCss(tabId, host, allFrames) {
     chrome.scripting.insertCSS(
         {
             target: {
                 tabId,
-                allFrames: app.cssAllFrames,
+                allFrames: allFrames,
             },
-            files: [`css/${app.host}.css`],
+            files: [`css/${host}.css`],
         },
         () => {
-            console.log(`added css for ${app.host}`);
+            console.log(`added css for ${host}`);
         }
     );
-
-    tabStatuses[tabId].loadedCss = true;
 }
 
 function addScript(app, tabId, name, func) {
