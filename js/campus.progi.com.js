@@ -25,12 +25,12 @@ if (!window.__itwLoaded) {
                 player.dataset.__itwCallback = "true";
                 const setVolume = async () => {
                     player.removeEventListener('play', setVolume);
-                    for (let i = 0; i < 100; i++) {
+                    for (let i = 0; i < 1000; i++) {
                         if (player.volume > 0.7) {
                             player.volume = 0.1;
                             return;
                         } else {
-                            await sleep(10);
+                            await sleep(1);
                         }
                     }
                 };
