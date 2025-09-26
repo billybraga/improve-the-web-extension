@@ -1,0 +1,8 @@
+@media only screen and (min-width: 1800px) and (min-height: 900px) {
+    body:not(.itw-full-width) .full-size.region-page > .flex-column.full-size.vertical-layout {
+        align-self: center !important;
+        width: 1750px;
+        border-left: 1px solid rgba(0, 0, 0, .08);
+        border-right: 1px solid rgba(0, 0, 0, .08);
+    }
+}

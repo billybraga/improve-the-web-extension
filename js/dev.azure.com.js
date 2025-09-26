@@ -25,18 +25,34 @@ if (!window.__itwLoaded) {
         lastHref = location.href;
         let page = null;
 
+        let isNormalWidth = true;
+
         if (lastHref.indexOf("_build/results") !== -1) {
             page = BUILD_RESULTS_PAGE;
         } else if (lastHref.indexOf("_dashboards/dashboard") !== -1) {
             page = DASHBOARD_PAGE;
         } else if (lastHref.indexOf("_workitems/edit") !== -1) {
+            isNormalWidth = false;
             page = WORK_ITEM_PAGE;
         } else if (lastHref.indexOf("/pullrequestcreate") !== -1) {
             page = CREATE_PR_PAGE;
         } else if (lastHref.indexOf("/pullrequest/") !== -1) {
             page = EDIT_PR_PAGE;
+            isNormalWidth = !location.search.includes('_a=files');
+        } else if (lastHref.indexOf("/_git/") !== -1) {
+            isNormalWidth = !location.search.includes('_a=files')
+                && !location.href.includes('/commit/')
+                && !location.href.includes('_a=compare');
         }
 
+        if (isNormalWidth) {
+            document.body.classList.add('itw-normal-width');
+            document.body.classList.remove('itw-full-width');
+        } else {
+            document.body.classList.remove('itw-normal-width');
+            document.body.classList.add('itw-full-width');
+        }
+        
         if (page) {
             console.info("Fixing", page);
             fixers[page]();

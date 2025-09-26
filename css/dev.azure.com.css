@@ -2,6 +2,7 @@
 #panelRoot div > button:nth-child(1) {
     display: none !important;
 }
+
 /* end 7pace */
 
 span.bright {
@@ -153,7 +154,7 @@ span.bright {
         margin-top: 50px;
         margin-left: -100px;
     }
-    
+
     /* wiql editor */
     #__bolt-panel-1 .bolt-panel-callout-content {
         width: 50vw !important;
@@ -204,56 +205,11 @@ span.bright {
         text-overflow: initial !important;
     }
 
-    .full-size.region-page > .flex-column.full-size.vertical-layout {
+    body.itw-normal-width .full-size.region-page > .flex-column.full-size.vertical-layout {
         align-self: center !important;
-        min-width: 1750px;
-        max-width: 100vw;
+        width: 1750px;
         border-left: 1px solid rgba(0, 0, 0, .08);
         border-right: 1px solid rgba(0, 0, 0, .08);
-    }
-
-    /*.full-size.region-page > .flex-column.full-size.vertical-layout .project-header,*/
-    /*.full-size.region-page > .flex-column.full-size.vertical-layout .navigation-container,*/
-    /*.vss-Splitter--container {*/
-    /*    align-self: center !important;*/
-    /*    min-width: 1750px;*/
-    /*    max-width: 100vw;*/
-    /*    border-left: 1px solid rgba(0, 0, 0, .08);*/
-    /*    border-right: 1px solid rgba(0, 0, 0, .08);*/
-    /*}*/
-    
-    /*.full-size.region-page > .flex-column.full-size.vertical-layout .dashboard-content .view-mode-header {*/
-    /*    align-self: center !important;*/
-    /*    min-width: 1750px;*/
-    /*    max-width: 100vw;*/
-    /*    border-bottom: none;*/
-    /*    border-right: 1px solid rgba(0, 0, 0, .08);*/
-    /*    border-left: 1px solid rgba(0, 0, 0, .08);*/
-    /*}*/
-    
-    /*.full-size.region-page > .flex-column.full-size.vertical-layout .dashboard-content .devops-dashboard-grid {*/
-    /*    !*margin-right: -27px;*!*/
-    /*    right: -8.8px;*/
-    /*    padding: 0;*/
-    /*    margin: 0;*/
-    /*    align-self: center !important;*/
-    /*    min-width: 1750px !important;*/
-    /*    max-width: 100vw;*/
-    /*    border-top: 1px solid rgba(0, 0, 0, .08);*/
-    /*    border-left: 1px solid rgba(0, 0, 0, .08);*/
-    /*    border-right: 1px solid rgba(0, 0, 0, .08);*/
-    /*}*/
-    
-    .repos-pr-details-page, .repos-changes-explorer-splitter {
-        width: 100vw;
-    }
-    
-    .vss-Splitter--container.vss-Splitter--container-row .vss-Splitter--pane-flexible {
-        width: unset !important;
-    }
-    
-    .full-size .run-logs-view {
-        width: 100vw !important;
     }
 }
 
@@ -337,6 +293,7 @@ span.bright {
     .full-screen-mode .project-header {
         display: none;
     }
+
     .full-screen-mode .bolt-header-with-commandbar:not(.boards-tabs-header) {
         display: none;
     }

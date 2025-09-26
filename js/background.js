@@ -22,7 +22,7 @@
  * @param {boolean} [cssAllFrames]
  * @returns {AppSpec}
  */
-function createAppSpec(host, supportedCommandTypes, hasScript, hasCss, hasSound = false, scriptAllFrames = false, cssAllFrames = false) {
+function createAppSpec(host, supportedCommandTypes, hasScript, hasCss, hasSound = false, scriptAllFrames = false, cssAllFrames = false, cssRules) {
     return {
         url: `https://${host}`,
         host,
@@ -32,6 +32,7 @@ function createAppSpec(host, supportedCommandTypes, hasScript, hasCss, hasSound 
         hasSound,
         scriptAllFrames,
         cssAllFrames,
+        cssRules,
     };
 }
 
@@ -103,7 +104,13 @@ const appSpecs = [
     createAppSpec("clients.nethris.com", [], true, true),
     createAppSpec("www.google.com", [], false, true),
     createAppSpec("support.google.com", [], false, true),
-    createAppSpec("dev.azure.com", [], true, true, false, false, true),
+    createAppSpec("dev.azure.com", [], true, true, false, false, true,
+        {
+            "dev.azure.com.normal-width.css": url => !url.includes('_a=files')
+                && !url.includes('/commit/')
+                && !url.includes('_a=compare')
+                && !url.includes('_workitems/edit')
+        }),
     createAppSpec("mail.google.com", [], false, true),
     createAppSpec("github.com", [], true, true),
     createAppSpec("www.tangerine.ca", [], true, false),
@@ -139,7 +146,7 @@ chrome.runtime.onMessage.addListener(function (message, sender) {
         handleNotifMessage(message);
     }
     if (message.type === "loadCss") {
-        loadCss(sender.tab.id, message.host, message.allFrames);
+        loadCss(sender.tab.id, message.host, `css/${message.host}.css`, message.allFrames);
     }
 });
 
@@ -261,10 +268,10 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 
     console.log("tab", changeInfo.status, tab.url);
     maybeLoadScriptOnTabUpdated(changeInfo.status, app, tabId);
-    maybeLoadCssOnTabUpdated(changeInfo.status, app, tabId);
+    maybeLoadCssOnTabUpdated(changeInfo.status, app, tabId, tab);
 });
 
-function maybeLoadCssOnTabUpdated(status, app, tabId) {
+function maybeLoadCssOnTabUpdated(status, app, tabId, tab) {
     if (!app.hasCss) {
         return;
     }
@@ -283,19 +290,27 @@ function maybeLoadCssOnTabUpdated(status, app, tabId) {
         return;
     }
 
-    loadCss(tabId, app.host, app.cssAllFrames);
+    loadCss(tabId, app.host, `css/${app.host}.css`, app.cssAllFrames);
+    
+    const cssRules = app.cssRules || {};
+
+    for (const cssRulesKey in cssRules) {
+        if (cssRules[cssRulesKey](tab.url)) {
+            loadCss(tabId, app.host, `css/${cssRulesKey}`, app.cssAllFrames);
+        }
+    }
 
     tabStatuses[tabId].loadedCss = true;
 }
 
-function loadCss(tabId, host, allFrames) {
+function loadCss(tabId, host, file, allFrames) {
     chrome.scripting.insertCSS(
         {
             target: {
                 tabId,
                 allFrames: allFrames,
             },
-            files: [`css/${host}.css`],
+            files: [file],
         },
         () => {
             console.log(`added css for ${host}`);
