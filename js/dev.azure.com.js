@@ -52,7 +52,7 @@ if (!window.__itwLoaded) {
             document.body.classList.remove('itw-normal-width');
             document.body.classList.add('itw-full-width');
         }
-        
+
         if (page) {
             console.info("Fixing", page);
             fixers[page]();
@@ -245,6 +245,7 @@ if (!window.__itwLoaded) {
 
         if (wiElem) {
             addTitle(wiElem);
+            fixAddLink(wiElem);
         } else if (tryIndex < 3) {
             setTimeout(tryAugmentWorkItem.bind(null, parent, tryIndex++), 50 * tryIndex);
         } else {
@@ -272,5 +273,26 @@ if (!window.__itwLoaded) {
             newTextElem.selectionEnd = newTextElem.value.length;
         }
         headerTextParent.appendChild(newTextElem);
+    }
+
+    /** @param {Element} wiElem */
+    function fixAddLink(wiElem) {
+        document.addEventListener('keyup', e => {
+            if (e.key !== 'Enter') {
+                return;
+            }
+            
+            if (e.target.tagName !== 'INPUT') {
+                return;
+            }
+
+            const titleInput = document.querySelector('.add-link-dialog .work-item-link-form input.bolt-textfield-input:not([role=combobox])');
+            if (e.target !== titleInput) {
+                return;
+            }
+            
+            const button = document.querySelector('.add-link-dialog button.primary');
+            button.click();
+        })
     }
 }
