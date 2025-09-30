@@ -29,6 +29,7 @@ if (!window.__itwLoaded) {
 
         if (lastHref.indexOf("_build/results") !== -1) {
             page = BUILD_RESULTS_PAGE;
+            isNormalWidth = !location.href.includes('&view=ms.vss-test-web.build-test-results-tab&runId=');
         } else if (lastHref.indexOf("_dashboards/dashboard") !== -1) {
             page = DASHBOARD_PAGE;
         } else if (lastHref.indexOf("_workitems/edit") !== -1) {
