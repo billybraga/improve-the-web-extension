@@ -29,10 +29,11 @@ if (!window.__itwLoaded) {
 
         if (lastHref.indexOf("_build/results") !== -1) {
             page = BUILD_RESULTS_PAGE;
-            isNormalWidth = !location.href.includes('&view=ms.vss-test-web.build-test-results-tab&runId=');
+            isNormalWidth = !lastHref.includes('&view=ms.vss-test-web.build-test-results-tab&runId=')
+                && !(lastHref.includes('_build/results') && lastHref.includes('view=logs'));
         } else if (lastHref.indexOf("_dashboards/dashboard") !== -1) {
             page = DASHBOARD_PAGE;
-        } else if (lastHref.indexOf("_workitems/edit") !== -1) {
+        } else if (lastHref.includes("_workitems/edit") || lastHref.includes("_workitems/create")) {
             isNormalWidth = false;
             page = WORK_ITEM_PAGE;
         } else if (lastHref.indexOf("/pullrequestcreate") !== -1) {
@@ -42,8 +43,13 @@ if (!window.__itwLoaded) {
             isNormalWidth = !location.search.includes('_a=files');
         } else if (lastHref.indexOf("/_git/") !== -1) {
             isNormalWidth = !location.search.includes('_a=files')
-                && !location.href.includes('/commit/')
-                && !location.href.includes('_a=compare');
+                && !lastHref.includes('/commit/')
+                && !lastHref.includes('_a=compare');
+        } else if (lastHref.indexOf("/_queries/") !== -1) {
+            isNormalWidth = !lastHref.includes('_queries/query/')
+                && !lastHref.includes('_queries/query-edit/')
+                && !lastHref.includes('_queries/edit/')
+            ;
         }
 
         if (isNormalWidth) {
@@ -282,7 +288,7 @@ if (!window.__itwLoaded) {
             if (e.key !== 'Enter') {
                 return;
             }
-            
+
             if (e.target.tagName !== 'INPUT') {
                 return;
             }
@@ -291,7 +297,7 @@ if (!window.__itwLoaded) {
             if (e.target !== titleInput) {
                 return;
             }
-            
+
             const button = document.querySelector('.add-link-dialog button.primary');
             button.click();
         })

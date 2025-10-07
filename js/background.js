@@ -110,6 +110,12 @@ const appSpecs = [
                 && !url.includes('/commit/')
                 && !url.includes('_a=compare')
                 && !url.includes('_workitems/edit')
+                && !url.includes('_queries/query-edit/')
+                && !url.includes('_queries/edit/')
+                && !url.includes('_workitems/create/')
+                && !url.includes('_queries/query/')
+                && !(url.includes('_build/results') && url.includes('view=logs'))
+                && !url.includes('&view=ms.vss-test-web.build-test-results-tab&runId=')
         }),
     createAppSpec("mail.google.com", [], false, true),
     createAppSpec("github.com", [], true, true),
