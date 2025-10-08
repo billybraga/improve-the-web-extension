@@ -27,28 +27,31 @@ if (!window.__itwLoaded) {
 
         let isNormalWidth = true;
 
-        if (lastHref.indexOf("_build/results") !== -1) {
+        if (lastHref.includes("_build/results")) {
             page = BUILD_RESULTS_PAGE;
             isNormalWidth = !lastHref.includes('&view=ms.vss-test-web.build-test-results-tab&runId=')
                 && !(lastHref.includes('_build/results') && lastHref.includes('view=logs'));
-        } else if (lastHref.indexOf("_dashboards/dashboard") !== -1) {
+        } else if (lastHref.includes("_dashboards/dashboard")) {
             page = DASHBOARD_PAGE;
         } else if (lastHref.includes("_workitems/edit") || lastHref.includes("_workitems/create")) {
             isNormalWidth = false;
             page = WORK_ITEM_PAGE;
-        } else if (lastHref.indexOf("/pullrequestcreate") !== -1) {
+        } else if (lastHref.includes("/pullrequestcreate")) {
             page = CREATE_PR_PAGE;
-        } else if (lastHref.indexOf("/pullrequest/") !== -1) {
+        } else if (lastHref.includes("/pullrequest/")) {
             page = EDIT_PR_PAGE;
             isNormalWidth = !location.search.includes('_a=files');
-        } else if (lastHref.indexOf("/_git/") !== -1) {
+        } else if (lastHref.includes("/_git/")) {
             isNormalWidth = !location.search.includes('_a=files')
                 && !lastHref.includes('/commit/')
                 && !lastHref.includes('_a=compare');
-        } else if (lastHref.indexOf("/_queries/") !== -1) {
+        } else if (lastHref.includes("/_queries/")) {
             isNormalWidth = !lastHref.includes('_queries/query/')
                 && !lastHref.includes('_queries/query-edit/')
                 && !lastHref.includes('_queries/edit/')
+            ;
+        } else if (lastHref.includes("/_search")) {
+            isNormalWidth = !lastHref.includes('type=workitem')
             ;
         }
 
