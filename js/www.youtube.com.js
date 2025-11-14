@@ -154,7 +154,7 @@ if (!window.__itwLoaded) {
                         continue;
                     }
                     const dropdown = dropdowns[0];
-                    const deleteMenu = dropdown.querySelectorAll('ytd-menu-service-item-renderer')[2];
+                    const deleteMenu = dropdown.querySelectorAll('ytd-menu-service-item-renderer')[1];
                     if (!deleteMenu) {
                         console.log('did not find delete menu', dropdown);
                         continue;
