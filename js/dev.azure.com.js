@@ -272,12 +272,18 @@ if (!window.__itwLoaded) {
 
         const wi = wiElem[reactKey].children[0]._owner.stateNode.state.values.workItem;
         const headerTextParent = wiElem.querySelector('.work-item-form-header .secondary-text .flex-row');
+        const title = wi.id + ' ' + wi._fieldData[1];
+        addTitleElement(headerTextParent, title);
+        addTitleElement(headerTextParent, `feature/${title.replace(/[^\w]+/g, '-').toLowerCase()}`);
+    }
+
+    function addTitleElement(headerTextParent, text) {
         const newTextElem = document.createElement('input');
         newTextElem.id = 'title-input';
         newTextElem.style.marginLeft = '10px';
         newTextElem.style.border = 'none';
-        newTextElem.style.width = '85%';
-        newTextElem.value = wi.id + ' ' + wi._fieldData[1];
+        newTextElem.style.width = '40%';
+        newTextElem.value = text;
         newTextElem.onfocus = () => {
             newTextElem.selectionStart = 0;
             newTextElem.selectionEnd = newTextElem.value.length;

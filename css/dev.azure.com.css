@@ -82,6 +82,14 @@ span.bright {
     background: none !important;
 }
 
+ul.responsive-tags-list.work-item-grid-tags {
+    margin: 0 !important;
+}
+
+ul.responsive-tags-list.work-item-grid-tags li.tag-item {
+    margin-bottom: 0 !important;
+}
+
 /* wide */
 @media only screen and (min-width: 1800px) {
     /* put important stuff on the right to read it from the center */
