@@ -51,8 +51,7 @@ if (!window.__itwLoaded) {
                 && !lastHref.includes('_queries/edit/')
             ;
         } else if (lastHref.includes("/_search")) {
-            isNormalWidth = !lastHref.includes('type=workitem')
-            ;
+            isNormalWidth = false;
         }
 
         if (isNormalWidth) {
