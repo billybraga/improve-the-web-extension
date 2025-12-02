@@ -125,6 +125,7 @@ const appSpecs = [
     createAppSpec("console.cloud.google.com", [], false, true),
     createAppSpec("doc.progi.com", [], false, true),
     createAppSpec("campus.progi.com", [], true, false),
+    createAppSpec("outlook.office.com", [], false, true),
 ];
 
 let notifs = {};

@@ -169,6 +169,13 @@ ul.responsive-tags-list.work-item-grid-tags li.tag-item {
     }
 }
 
+/*
+
+
+<div class="fui-Toast rhf7k35 ___1653m25 f1w7i9ko f5pduvr">
+<div class="fui-ToastTitle__media r8x5mrd ___seqbue0 fbq2gqr"><i data-icon-name="DeleteRegular" aria-hidden="true" class="cIez2 ONzlc root-89"><span role="presentation" aria-hidden="true" class="FLwLv"><i class="fui-Icon-font Q0K3G ___qaf4230 f14t3ns0 fne0op0 fmd4ok8 f303qgw f1sxfq9t" fill="currentColor" aria-hidden="true"></i></span></i></div><div id="toast-titlerj8" class="fui-ToastTitle rdjap1e ___3tn9mi0 f1w7i9ko">Deleted</div><div class="fui-ToastTitle__action r2j19ip ___13gelc0 f1qz2gb0"><button role="button" type="button" class="fui-Link CtaiO ___1qiy845 f2hkw1w f3rmtva f1ewtqcl f179xftw f1k6fduh f1w7gpdv fk6fouc fkhj508 figsok6 f1s184ao f1mk8lai fnbmjn9 f1o700av f1iuv45f f1cmlufx f9n3di6 f1ids18y f1tx3yz7 f1sk1dtk f1eh06m1 f182g21t fon99ty f1olyrje f1p93eir f1nev41a f1ern45e f1n71otn f1h8hb77 f1deefiw" title="Undo" aria-label="Undo" tabindex="0">Undo</button></div></div>
+*/
+
 /* wide and not thin */
 @media only screen and (min-width: 1800px) and (min-height: 900px) {
     /* put menu on top */

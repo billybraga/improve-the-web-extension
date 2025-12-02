@@ -19,7 +19,8 @@
         "https://doc.progi.com/*",
         "https://ms-devlabs.gallerycdn.vsassets.io/*",
         "https://7pace.gallerycdn.vsassets.io/*",
-        "https://campus.progi.com/*"
+        "https://campus.progi.com/*",
+        "https://outlook.office.com/*"
     ],
     "permissions": [
         "scripting",
@@ -68,7 +69,8 @@
                 "css/console.cloud.google.com.css",
                 "css/doc.progi.com.css",
                 "css/ms-devlabs.gallerycdn.vsassets.io.css",
-                "js/campus.progi.com.js"
+                "js/campus.progi.com.js",
+                "css/outlook.office.com.css"
             ],
             "matches": [
                 "https://music.youtube.com/*",
@@ -86,7 +88,8 @@
                 "https://doc.progi.com/*",
                 "https://ms-devlabs.gallerycdn.vsassets.io/*",
                 "https://7pace.gallerycdn.vsassets.io/*",
-                "https://campus.progi.com/*"
+                "https://campus.progi.com/*",
+                "https://outlook.office.com/*"
             ]
         }
     ],
