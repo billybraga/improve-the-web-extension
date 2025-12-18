@@ -1,4 +1,6 @@
 if (!window.__itwLoaded) {
+    console.log("loaded itw");
+
     window.__itwLoaded = true;
     const CREATING_PR_SESSION_KEY = '_cpr';
 
@@ -42,6 +44,9 @@ if (!window.__itwLoaded) {
             page = EDIT_PR_PAGE;
             isNormalWidth = !location.search.includes('_a=files');
         } else if (lastHref.includes("/_git/")) {
+            if (lastHref.includes("_a=content")) {
+                page = EDIT_PR_PAGE;
+            }
             isNormalWidth = !location.search.includes('_a=files')
                 && !lastHref.includes('/commit/')
                 && !lastHref.includes('_a=compare');
