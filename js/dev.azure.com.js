@@ -56,6 +56,9 @@ if (!window.__itwLoaded) {
                 && !lastHref.includes('_queries/edit/')
             ;
         } else if (lastHref.includes("/_search")) {
+            if (lastHref.includes("action=content")) {
+                page = EDIT_PR_PAGE;
+            }
             isNormalWidth = false;
         }
 
