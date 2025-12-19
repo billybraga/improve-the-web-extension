@@ -9,12 +9,14 @@ if (!window.__itwLoaded) {
     const BUILD_RESULTS_PAGE = 'build results';
     const CREATE_PR_PAGE = 'create pr';
     const EDIT_PR_PAGE = 'edit pr';
+    const SOURCE_CODE_PAGE = 'source code';
     const fixers = {
         [DASHBOARD_PAGE]: fixDashboard,
         [WORK_ITEM_PAGE]: augmentWorkItem,
         [BUILD_RESULTS_PAGE]: fixBuildResults,
         [CREATE_PR_PAGE]: createPrPage,
         [EDIT_PR_PAGE]: editPrPage,
+        [SOURCE_CODE_PAGE]: sourceCodePage
     }
     let lastHref;
     setInterval(checkPage, 100);
@@ -45,7 +47,7 @@ if (!window.__itwLoaded) {
             isNormalWidth = !location.search.includes('_a=files');
         } else if (lastHref.includes("/_git/")) {
             if (lastHref.includes("_a=content")) {
-                page = EDIT_PR_PAGE;
+                page = SOURCE_CODE_PAGE;
             }
             isNormalWidth = !location.search.includes('_a=files')
                 && !lastHref.includes('/commit/')
@@ -57,7 +59,7 @@ if (!window.__itwLoaded) {
             ;
         } else if (lastHref.includes("/_search")) {
             if (lastHref.includes("action=content")) {
-                page = EDIT_PR_PAGE;
+                page = SOURCE_CODE_PAGE;
             }
             isNormalWidth = false;
         }
@@ -160,6 +162,10 @@ if (!window.__itwLoaded) {
         ]);
     }
 
+    async function sourceCodePage() {
+        await tryHandleFixEditor();
+    }
+
     async function tryHandleFixEditor() {
         for (let i = 0; i < 5; i++) {
             let errors = 0;
@@ -184,10 +190,7 @@ if (!window.__itwLoaded) {
                 editors.forEach(e => monaco.editor.setModelLanguage(e, "html"));
             });
 
-            if (errors === 0) {
-                return;
-            }
-
+            // Still try 5 times, in case the editors change
             await sleep(250);
         }
     }
