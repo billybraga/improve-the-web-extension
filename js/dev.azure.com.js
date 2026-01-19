@@ -46,7 +46,7 @@ if (!window.__itwLoaded) {
             page = EDIT_PR_PAGE;
             isNormalWidth = !location.search.includes('_a=files');
         } else if (lastHref.includes("/_git/")) {
-            if (lastHref.includes("_a=content")) {
+            if (lastHref.includes("_a=content") || !lastHref.includes("_a=")) {
                 page = SOURCE_CODE_PAGE;
             }
             isNormalWidth = !location.search.includes('_a=files')
