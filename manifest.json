@@ -128,6 +128,20 @@
                 "mac": "MediaNextTrack"
             },
             "description": "Youtube next track"
+        },
+        "do-nothing": {
+            "suggested_key": {
+                "default": "Ctrl+R",
+                "mac": "Ctrl+R"
+            },
+            "description": "Do nothing"
+        },
+        "do-nothing2": {
+            "suggested_key": {
+                "default": "Ctrl+R",
+                "mac": "Ctrl+R"
+            },
+            "description": "Do nothing"
         }
     },
     "background": {

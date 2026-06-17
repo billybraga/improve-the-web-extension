@@ -219,8 +219,10 @@ if (!window.__itwLoaded) {
         return new Promise((resolve) => setTimeout(resolve, time));
     }
 
+    const home = {lat: 45.51575149031245, lng: -73.55690826816736};
     function updateDistance(carStation) {
         const carStationPoint = {lat: carStation.Latitude, lng: carStation.Longitude};
+        carStation.Distance = pointDistance(home, carStationPoint) / 1000;
         carStation.closestMetroStation = metroLines
             .flatMap(x => x.stations)
             .map(metroStation => {
