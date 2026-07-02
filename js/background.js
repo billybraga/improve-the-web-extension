@@ -106,7 +106,7 @@ const appSpecs = [
     createAppSpec("support.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true, false, false, true,
         {
-            "dev.azure.com.normal-width.css": url => !url.includes('_a=files')
+            "dev.azure.com.normal-width.css": url => !url.includes('/_git/')
                 && !url.includes('/commit/')
                 && !url.includes('_a=compare')
                 && !url.includes('_workitems/edit')

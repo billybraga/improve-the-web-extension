@@ -49,9 +49,7 @@ if (!window.__itwLoaded) {
             if (lastHref.includes("_a=content") || !lastHref.includes("_a=")) {
                 page = SOURCE_CODE_PAGE;
             }
-            isNormalWidth = !location.search.includes('_a=files')
-                && !lastHref.includes('/commit/')
-                && !lastHref.includes('_a=compare');
+            isNormalWidth = false;
         } else if (lastHref.includes("/_queries/")) {
             isNormalWidth = !lastHref.includes('_queries/query/')
                 && !lastHref.includes('_queries/query-edit/')
