@@ -327,7 +327,12 @@ if (!window.__itwLoaded) {
                 return;
             }
 
-            document.getElementById('__bolt-save').click();
+            const saveBtn = document.getElementById('__bolt-save-dialog') || document.getElementById('__bolt-save');
+            if (!saveBtn || saveBtn.disabled) {
+                console.log("Skipping save", saveBtn);
+                return;
+            }
+            saveBtn.click();
         });
     }
 }
