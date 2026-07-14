@@ -20,6 +20,7 @@ if (!window.__itwLoaded) {
     }
     let lastHref;
     setInterval(checkPage, 100);
+    registerHotKeys();
 
     function checkPage() {
         if (lastHref === location.href) {
@@ -318,5 +319,15 @@ if (!window.__itwLoaded) {
             const button = document.querySelector('.add-link-dialog button.primary');
             button.click();
         })
+    }
+
+    function registerHotKeys() {
+        document.addEventListener('keyup', e => {
+            if (e.key !== 's' || !e.ctrlKey || e.shiftKey) {
+                return;
+            }
+
+            document.getElementById('__bolt-save').click();
+        });
     }
 }
