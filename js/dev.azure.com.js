@@ -34,7 +34,7 @@ if (!window.__itwLoaded) {
 
         if (lastHref.includes("_build/results")) {
             page = BUILD_RESULTS_PAGE;
-            isNormalWidth = !lastHref.includes('&view=ms.vss-test-web.build-test-results-tab&runId=')
+            isNormalWidth = !lastHref.includes('&view=ms.vss-test-web.build-test-results-tab')
                 && !(lastHref.includes('_build/results') && lastHref.includes('view=logs'));
         } else if (lastHref.includes("_dashboards/dashboard")) {
             page = DASHBOARD_PAGE;

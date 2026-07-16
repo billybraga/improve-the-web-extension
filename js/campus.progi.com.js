@@ -5,17 +5,19 @@ if (!window.__itwLoaded) {
 
     doLoop().catch(console.error);
 
+    const targetVolume = 0.8;
+
     async function doLoop() {
         while (true) {
             /** @var {HTMLAudioElement} player */
-            const player = document.getElementById('lp_audio_media_player_html5');
+            const player = document.querySelector('#cm-content video');
             try {
                 if (!player || player.dataset.__itwUpdated) {
                     continue;
                 }
 
                 player.dataset.__itwUpdated = "true";
-                player.volume = 0.1;
+                player.volume = targetVolume;
                 player.playbackRate = 1.5;
 
                 if (player.dataset.__itwCallback) {
@@ -26,8 +28,8 @@ if (!window.__itwLoaded) {
                 const setVolume = async () => {
                     player.removeEventListener('play', setVolume);
                     for (let i = 0; i < 1000; i++) {
-                        if (player.volume > 0.7) {
-                            player.volume = 0.1;
+                        if (player.volume > targetVolume) {
+                            player.volume = targetVolume;
                             return;
                         } else {
                             await sleep(1);

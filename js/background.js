@@ -115,7 +115,7 @@ const appSpecs = [
                 && !url.includes('_workitems/create/')
                 && !url.includes('_queries/query/')
                 && !(url.includes('_build/results') && url.includes('view=logs'))
-                && !url.includes('&view=ms.vss-test-web.build-test-results-tab&runId=')
+                && !url.includes('&view=ms.vss-test-web.build-test-results-tab')
                 && !url.includes("/_search")
         }),
     createAppSpec("mail.google.com", [], false, true),
