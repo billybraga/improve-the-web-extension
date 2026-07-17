@@ -327,7 +327,9 @@ if (!window.__itwLoaded) {
                 return;
             }
 
-            const saveBtn = document.getElementById('__bolt-save-dialog') || document.getElementById('__bolt-save');
+            const dialogSaveBtnElements = document.querySelectorAll('#__bolt-save-dialog');
+            dialogSaveBtnElement = dialogSaveBtnElements.length > 0 ? dialogSaveBtnElements[dialogSaveBtnElements.length - 1] : null;
+            const saveBtn = dialogSaveBtnElement || document.getElementById('__bolt-save');
             if (!saveBtn || saveBtn.disabled) {
                 console.log("Skipping save", saveBtn);
                 return;
