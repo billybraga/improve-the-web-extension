@@ -54,7 +54,7 @@ function loadScript() {
     }
 
     const jsPath = `js/${location.host}.js`;
-    console.log("Loading js", {jsPath});
+    console.log("Loading js", { jsPath });
     const s = document.createElement('script');
     s.src = chrome.runtime.getURL(jsPath);
     s.onload = function () {
@@ -94,6 +94,10 @@ function listen() {
     }
 }
 
+function shouldUseNormalWidthForUrl(url) {
+    return url.includes("/_dashboards");
+}
+
 
 // Variables
 
@@ -106,17 +110,7 @@ const appSpecs = [
     createAppSpec("support.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true, false, false, true,
         {
-            "dev.azure.com.normal-width.css": url => !url.includes('/_git/')
-                && !url.includes('/commit/')
-                && !url.includes('_a=compare')
-                && !url.includes('_workitems/edit')
-                && !url.includes('_queries/query-edit/')
-                && !url.includes('_queries/edit/')
-                && !url.includes('_workitems/create/')
-                && !url.includes('_queries/query/')
-                && !(url.includes('_build/results') && url.includes('view=logs'))
-                && !url.includes('&view=ms.vss-test-web.build-test-results-tab')
-                && !url.includes("/_search")
+            "dev.azure.com.normal-width.css": url => shouldUseNormalWidthForUrl(url)
         }),
     createAppSpec("mail.google.com", [], false, true),
     createAppSpec("github.com", [], true, true),
@@ -220,11 +214,11 @@ chrome.commands.onCommand.addListener(async function (command) {
 
     console.info("Received command in bg", command);
 
-    const message = {type: type, arg, destination: "content"};
+    const message = { type: type, arg, destination: "content" };
     const tabsList = await Promise.all(
         appSpecs
             .filter(app => app.supportedCommandTypes.indexOf(type) !== -1)
-            .map(app => chrome.tabs.query({url: `${app.url}/*`}))
+            .map(app => chrome.tabs.query({ url: `${app.url}/*` }))
     );
 
     const tabs = tabsList.flatMap(x => x);
@@ -299,7 +293,7 @@ function maybeLoadCssOnTabUpdated(status, app, tabId, tab) {
     }
 
     loadCss(tabId, app.host, `css/${app.host}.css`, app.cssAllFrames);
-    
+
     const cssRules = app.cssRules || {};
 
     for (const cssRulesKey in cssRules) {

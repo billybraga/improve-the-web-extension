@@ -30,37 +30,38 @@ if (!window.__itwLoaded) {
         lastHref = location.href;
         let page = null;
 
-        let isNormalWidth = true;
+        let isNormalWidth = false;
 
         if (lastHref.includes("_build/results")) {
             page = BUILD_RESULTS_PAGE;
-            isNormalWidth = !lastHref.includes('&view=ms.vss-test-web.build-test-results-tab')
-                && !(lastHref.includes('_build/results') && lastHref.includes('view=logs'));
+            // isNormalWidth = !lastHref.includes('&view=ms.vss-test-web.build-test-results-tab')
+            //     && !(lastHref.includes('_build/results') && lastHref.includes('view=logs'));
         } else if (lastHref.includes("_dashboards/dashboard")) {
             page = DASHBOARD_PAGE;
+            isNormalWidth = true;
         } else if (lastHref.includes("_workitems/edit") || lastHref.includes("_workitems/create")) {
-            isNormalWidth = false;
+            // isNormalWidth = false;
             page = WORK_ITEM_PAGE;
         } else if (lastHref.includes("/pullrequestcreate")) {
             page = CREATE_PR_PAGE;
         } else if (lastHref.includes("/pullrequest/")) {
             page = EDIT_PR_PAGE;
-            isNormalWidth = !location.search.includes('_a=files');
+            // isNormalWidth = !location.search.includes('_a=files');
         } else if (lastHref.includes("/_git/")) {
             if (lastHref.includes("_a=content") || !lastHref.includes("_a=")) {
                 page = SOURCE_CODE_PAGE;
             }
-            isNormalWidth = false;
+            // isNormalWidth = false;
         } else if (lastHref.includes("/_queries/")) {
-            isNormalWidth = !lastHref.includes('_queries/query/')
-                && !lastHref.includes('_queries/query-edit/')
-                && !lastHref.includes('_queries/edit/')
+            // isNormalWidth = !lastHref.includes('_queries/query/')
+            //     && !lastHref.includes('_queries/query-edit/')
+            //     && !lastHref.includes('_queries/edit/')
             ;
         } else if (lastHref.includes("/_search")) {
             if (lastHref.includes("action=content")) {
                 page = SOURCE_CODE_PAGE;
             }
-            isNormalWidth = false;
+            // isNormalWidth = false;
         }
 
         if (isNormalWidth) {
