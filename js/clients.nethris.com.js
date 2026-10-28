@@ -2,20 +2,27 @@ if (!window.__itwLoaded) {
     window.__itwLoaded = true;
 
     // week token emailed by `sevenpace week-email`: "itw", the Sunday of the week (yyyymmdd),
-    // then the quarters of each day from Sunday to Saturday (2 digits each)
+    // then the quarters of each day from Sunday to Saturday (2 digits each), and optionally "v" then the vacation
+    // quarters of each day the same way
     const timesheetUrl = 'https://clients.nethris.com/WebTimeAttendance/menusubmit.aspx?menuSelect=SELF.MYPAY.MONTEMPS.FEUILLE';
     const pendingTokenKey = '__itwWeekToken';
     // added to the pending token once the next week was requested, to not go further
     const nextWeekSuffix = ':next';
 
+    const vacationHourType = '3514';
+    const rowPrefix = 'HOUR_TYPE_ID__TIMEENTRY_SCREEN_DAY__';
+
+    const toHours = quarters => quarters.match(/\d{2}/g).map(q => q / 4);
+
     const parseToken = token => {
-        const match = /^itw(\d{4})(\d{2})(\d{2})((?:\d{2}){7})$/.exec(token.trim());
+        const match = /^itw(\d{4})(\d{2})(\d{2})((?:\d{2}){7})(?:v((?:\d{2}){7}))?$/.exec(token.trim());
         if (!match) {
             return null;
         }
         return {
             sunday: new Date(+match[1], match[2] - 1, +match[3]),
-            hours: match[4].match(/\d{2}/g).map(q => q / 4),
+            hours: toHours(match[4]),
+            vacationHours: match[5] ? toHours(match[5]) : null,
         };
     };
 
@@ -33,16 +40,37 @@ if (!window.__itwLoaded) {
 
     const addDays = (date, days) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 
-    const fillHours = hoursPerDay => {
+    const fillHours = (hoursPerDay, row = '0') => {
         // TS_HOURS1 is Sunday, TS_HOURS7 is Saturday
         hoursPerDay.forEach((hours, i) => {
-            const hourElem = document.getElementById('TS_HOURS' + (i + 1) + '__TIMEENTRY_SCREEN_DAY__0');
+            const hourElem = document.getElementById('TS_HOURS' + (i + 1) + '__TIMEENTRY_SCREEN_DAY__' + row);
             if (!hourElem || (!hours && !hourElem.value)) {
                 return;
             }
             hourElem.value = hours;
             hourElem.dispatchEvent(new Event('change'));
         });
+    };
+
+    /** id suffix of the vacation row of the timesheet, added with the Add button when there is none */
+    const vacationRow = () => {
+        const rows = () => [...document.querySelectorAll('select[id^="' + rowPrefix + '"]')]
+            .filter(select => !select.id.endsWith('DummyRowHour'));
+        let select = rows().find(s => s.value === vacationHourType);
+        if (!select) {
+            document.getElementById('tblTimeEntry_AddLink').click();
+            select = rows().pop();
+            select.value = vacationHourType;
+            select.dispatchEvent(new Event('change'));
+        }
+        return select.id.substring(rowPrefix.length);
+    };
+
+    const fillWeekHours = week => {
+        fillHours(week.hours);
+        if (week.vacationHours && week.vacationHours.some(hours => hours)) {
+            fillHours(week.vacationHours, vacationRow());
+        }
     };
 
     /** fills the week of the token, going to the next week first when the previous one is shown */
@@ -55,7 +83,7 @@ if (!window.__itwLoaded) {
         }
         const shownDay = shownSundayDay();
         if (shownDay === week.sunday.getDate()) {
-            fillHours(week.hours);
+            fillWeekHours(week);
             return;
         }
         if (canGoToNextWeek && shownDay === addDays(week.sunday, -7).getDate()) {
