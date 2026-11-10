@@ -7,6 +7,11 @@ body {
     left: calc((100vw - 1016px) / 2) !important;
 }
 
+/* AI Mode follow-up input box */
+.y4VEUd:not(.AkYNS) {
+    left: calc((100vw - 1016px) / 2) !important;
+}
+
 g-scrolling-carousel [role=tablist] {
     margin-left: 20px !important;
 }
