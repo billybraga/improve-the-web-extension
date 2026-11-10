@@ -41,6 +41,10 @@
             "matches": ["https://www.reservauto.net/*"],
             "all_frames": true,
             "js": ["js/www.reservauto.net.js"]
+        },
+        {
+            "matches": ["https://www.google.com/*"],
+            "css": ["css/www.google.com.css"]
         }
     ],
     "web_accessible_resources": [

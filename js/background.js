@@ -106,7 +106,7 @@ const appSpecs = [
     createMediaAppSpec("www.youtube.com", true, true, false),
     createMediaAppSpec("music.youtube.com", true, false, true),
     createAppSpec("clients.nethris.com", [], true, true),
-    createAppSpec("www.google.com", [], false, true),
+    createAppSpec("www.google.com", [], false, false), // css is injected by the manifest content_scripts
     createAppSpec("support.google.com", [], false, true),
     createAppSpec("dev.azure.com", [], true, true, false, false, true,
         {

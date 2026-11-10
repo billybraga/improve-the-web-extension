@@ -15,3 +15,18 @@ body {
 g-scrolling-carousel [role=tablist] {
     margin-left: 20px !important;
 }
+
+/* Images tab (udm=2): use the whole screen, but keep the search bar and tabs centered */
+body:has(input[name=udm][value="2"]) {
+    margin: 0 !important;
+}
+
+body:has(input[name=udm][value="2"]) #searchform {
+    left: 0 !important;
+    padding-left: calc((100vw - 1016px) / 2) !important;
+    box-sizing: border-box !important;
+}
+
+body:has(input[name=udm][value="2"]) .Fgyi2e {
+    padding-left: calc((100vw - 1016px) / 2) !important;
+}
