@@ -20,6 +20,7 @@ if (!window.__itwLoaded) {
     }
     let lastHref;
     setInterval(checkPage, 100);
+    setInterval(ensureDashboardTab, 300);
     registerHotKeys();
 
     function checkPage() {
@@ -385,5 +386,527 @@ if (!window.__itwLoaded) {
         }
 
         return null;
+    }
+
+    // ---- Home page "My dashboard" tab ----
+
+    const DASHBOARD_HASH = '#itw-dashboard';
+    const DASHBOARD_QUERY_KEY = '__itw_dashboard_query';
+    let dashboardLoadId = 0;
+
+    function getOrg() {
+        return location.pathname.split('/')[1];
+    }
+
+    function isHomePage() {
+        return /^\/[^/]+\/?(_work|_pulls)?\/?$/.test(location.pathname);
+    }
+
+    function ensureDashboardTab() {
+        if (!isHomePage()) {
+            return;
+        }
+
+        const pullsTab = document.getElementById('__bolt-tab-pullrequests');
+        if (pullsTab && !document.getElementById('itw-dashboard-tab')) {
+            const tab = pullsTab.cloneNode(true);
+            tab.id = 'itw-dashboard-tab';
+            tab.href = `/${getOrg()}/${DASHBOARD_HASH}`;
+            tab.setAttribute('aria-selected', 'false');
+            tab.classList.remove('selected');
+            tab.removeAttribute('data-focuszone');
+            const text = tab.querySelector('.bolt-tab-text');
+            text.textContent = 'My dashboard';
+            text.dataset.content = 'My dashboard';
+            tab.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (location.hash !== DASHBOARD_HASH) {
+                    history.pushState(null, '', `/${getOrg()}/${DASHBOARD_HASH}`);
+                }
+                showDashboard();
+            }, true);
+            pullsTab.after(tab);
+
+            // Leaving the dashboard through the other tabs
+            pullsTab.parentElement.addEventListener('click', e => {
+                if (e.target.closest('.bolt-tab') && !e.target.closest('#itw-dashboard-tab')) {
+                    hideDashboard();
+                }
+            }, true);
+        }
+
+        if (location.hash === DASHBOARD_HASH) {
+            if (!pullsTab) {
+                return;
+            }
+            // Azure DevOps can re-render the page after we showed the dashboard (e.g. on Back)
+            if (!pullsTab.closest('.suite-me-page-tabbar').parentElement.querySelector(':scope > #itw-dashboard')) {
+                showDashboard();
+            } else {
+                if (document.querySelector('.suite-me-page-tabbar .bolt-tab.selected:not(#itw-dashboard-tab)')) {
+                    setDashboardTabSelected(true);
+                }
+                ensureDashboardFilter();
+            }
+        } else if (document.body.classList.contains('itw-dashboard-active')) {
+            hideDashboard();
+        }
+    }
+
+    function setDashboardTabSelected(selected) {
+        const tab = document.getElementById('itw-dashboard-tab');
+        tab?.classList.toggle('selected', selected);
+        tab?.setAttribute('aria-selected', String(selected));
+        document.querySelectorAll('.suite-me-page-tabbar .bolt-tab:not(#itw-dashboard-tab)').forEach(t => {
+            t.classList.toggle('selected', !selected && t.getAttribute('aria-selected') === 'true');
+        });
+    }
+
+    function hideDashboard() {
+        document.body.classList.remove('itw-dashboard-active');
+        document.getElementById('itw-dashboard')?.remove();
+        document.getElementById('itw-dash-filter')?.remove();
+        setDashboardTabSelected(false);
+    }
+
+    /** The filter box goes at the right of the tabs, where the other tabs have theirs */
+    function ensureDashboardFilter() {
+        const tabbar = document.querySelector('.suite-me-page-tabbar');
+        const existing = document.getElementById('itw-dash-filter');
+        if (!tabbar || existing?.parentElement === tabbar) {
+            return;
+        }
+        // Azure DevOps re-rendered the tabs: move the filter to the new ones
+        const input = existing ?? document.createElement('input');
+        if (!existing) {
+            input.id = 'itw-dash-filter';
+            input.type = 'search';
+            input.placeholder = 'Filter the dashboard';
+            input.addEventListener('input', applyDashboardFilter);
+        }
+        tabbar.appendChild(input);
+    }
+
+    function showDashboard() {
+        // The page that holds the org title, the tabs and the tab content
+        const container = document.querySelector('.suite-me-page-tabbar')?.parentElement;
+        if (!container) {
+            return;
+        }
+
+        document.body.classList.add('itw-dashboard-active');
+        setDashboardTabSelected(true);
+        document.getElementById('itw-dashboard')?.remove();
+        ensureDashboardFilter();
+
+        const root = document.createElement('div');
+        root.id = 'itw-dashboard';
+        root.innerHTML = `
+            <section id="itw-dash-prs"><h2>My pull requests</h2><div class="itw-dash-body">Loading...</div></section>
+            <section id="itw-dash-wis"><h2>My work items</h2><div class="itw-dash-body">Loading...</div></section>
+            <section id="itw-dash-query">
+                <div class="itw-dash-section-header">
+                    <h2 class="itw-dash-query-title">Query</h2>
+                    <button type="button" class="itw-dash-query-edit" title="Choose the query and its name">⚙</button>
+                </div>
+                <div class="itw-dash-body"></div>
+                <dialog class="itw-dash-query-dialog">
+                    <form method="dialog">
+                        <h2>Query column</h2>
+                        <label>Name<input class="itw-dash-query-name" type="text"></label>
+                        <label>Project<select class="itw-dash-project"><option value="">Loading...</option></select></label>
+                        <label>Query<select class="itw-dash-queries" disabled><option value="">Choose a project first</option></select></label>
+                        <label>Or paste a query link<input class="itw-dash-query-link" type="text" placeholder="https://dev.azure.com/.../_queries/query/..."></label>
+                        <div class="itw-dash-error"></div>
+                        <div class="itw-dash-dialog-buttons">
+                            <button type="submit" value="save" class="itw-dash-primary">Save</button>
+                            <button type="button" class="itw-dash-cancel">Cancel</button>
+                        </div>
+                    </form>
+                </dialog>
+            </section>`;
+        container.appendChild(root);
+
+        const loadId = ++dashboardLoadId;
+        loadDashboardPrs(root.querySelector('#itw-dash-prs .itw-dash-body'), loadId);
+        loadDashboardWorkItems(root.querySelector('#itw-dash-wis .itw-dash-body'), loadId);
+        setupDashboardQuery(root.querySelector('#itw-dash-query'), loadId);
+    }
+
+    function applyDashboardFilter() {
+        const root = document.getElementById('itw-dashboard');
+        const terms = (document.getElementById('itw-dash-filter')?.value ?? '').toLowerCase().split(/\s+/).filter(x => x);
+        root.querySelectorAll('tbody tr').forEach(tr => {
+            const text = tr.textContent.toLowerCase();
+            tr.hidden = !terms.every(t => text.includes(t));
+        });
+    }
+
+    /** Fills a dashboard section, keeping the filter applied */
+    function setDashboardBody(body, html) {
+        body.innerHTML = html;
+        if (body.isConnected) {
+            applyDashboardFilter();
+        }
+    }
+
+    // F5 on the dashboard reloads its data, without reloading Azure DevOps (Ctrl+F5 still does)
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'F5' || e.ctrlKey || e.shiftKey || e.altKey || e.metaKey || location.hash !== DASHBOARD_HASH) {
+            return;
+        }
+        if (!document.getElementById('itw-dashboard')) {
+            return;
+        }
+        e.preventDefault();
+        showDashboard();
+    }, true);
+
+    async function adoFetch(path, body) {
+        const response = await fetch(`/${getOrg()}${path}`, {
+            method: body ? 'POST' : 'GET',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        if (!response.ok) {
+            throw new Error(`${response.status} on ${path}`);
+        }
+        return response.json();
+    }
+
+    let currentUserIdPromise;
+    function getCurrentUserId() {
+        currentUserIdPromise ??= adoFetch('/_apis/connectionData').then(x => x.authenticatedUser.id);
+        return currentUserIdPromise;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    }
+
+    function formatDate(value) {
+        if (!value) {
+            return '';
+        }
+        const date = new Date(value);
+        return isNaN(date) ? value : date.toLocaleDateString('en-CA');
+    }
+
+    function formatFieldValue(value) {
+        if (value && typeof value === 'object') {
+            return value.displayName ?? JSON.stringify(value);
+        }
+        if (typeof value === 'string' && /^\d{4}-\d\d-\d\dT/.test(value)) {
+            return formatDate(value);
+        }
+        if (typeof value === 'string' && value.startsWith('<')) {
+            // html fields like the description
+            const div = document.createElement('div');
+            div.innerHTML = value;
+            const text = div.textContent.trim();
+            return text.length > 150 ? text.slice(0, 150) + '...' : text;
+        }
+        return value;
+    }
+
+    /**
+     * @param {{label: string, html: (row: any) => string}[]} columns
+     * @param {any[]} rows
+     */
+    function renderTable(columns, rows, emptyText) {
+        if (!rows.length) {
+            return `<div class="itw-dash-empty">${escapeHtml(emptyText)}</div>`;
+        }
+        return `<table class="itw-dash-table">
+            <thead><tr>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}</tr></thead>
+            <tbody>${rows.map(r => `<tr>${columns.map(c => `<td${c.wrap ? ' class="itw-dash-wrap"' : ''}>${c.html(r)}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    function showDashboardError(body, error) {
+        console.error('Dashboard', error);
+        body.innerHTML = `<div class="itw-dash-error">Could not load: ${escapeHtml(error.message)}</div>`;
+    }
+
+    const VOTES = { 10: 'Approved', 5: 'Approved with suggestions', 0: '', [-5]: 'Waiting for author', [-10]: 'Rejected' };
+
+    async function loadDashboardPrs(body, loadId) {
+        try {
+            const me = await getCurrentUserId();
+            const query = 'api-version=7.1&searchCriteria.status=active&$top=200';
+            const [created, reviewing] = await Promise.all([
+                adoFetch(`/_apis/git/pullrequests?${query}&searchCriteria.creatorId=${me}`),
+                adoFetch(`/_apis/git/pullrequests?${query}&searchCriteria.reviewerId=${me}`),
+            ]);
+            if (loadId !== dashboardLoadId) {
+                return;
+            }
+
+            const prUrl = pr => `/${getOrg()}/${encodeURIComponent(pr.repository.project.name)}/_git/${encodeURIComponent(pr.repository.name)}/pullrequest/${pr.pullRequestId}`;
+            const votes = pr => pr.reviewers
+                .filter(r => r.vote)
+                .map(r => `<span class="itw-dash-vote itw-dash-vote-${r.vote > 0 ? 'ok' : 'ko'}" title="${escapeHtml(r.displayName + ': ' + VOTES[r.vote])}">${r.vote > 0 ? '✓' : '✗'}</span>`)
+                .join('');
+            // the target branch only when it is not the usual one
+            const targetTag = pr => {
+                const target = pr.targetRefName.replace('refs/heads/', '');
+                return target === 'main' || target === 'master' ? '' : ` <span class="itw-dash-tag">→ ${escapeHtml(target)}</span>`;
+            };
+            const columns = showAuthor => [
+                { label: 'ID', html: pr => `<a href="${prUrl(pr)}">${pr.pullRequestId}</a>` },
+                { label: 'Title', wrap: true, html: pr => `<a href="${prUrl(pr)}">${escapeHtml(pr.title)}</a>${pr.isDraft ? ' <span class="itw-dash-tag">Draft</span>' : ''}${pr.autoCompleteSetBy ? ' <span class="itw-dash-tag">Auto-complete</span>' : ''}${targetTag(pr)}` },
+                ...(showAuthor ? [{ label: 'Author', html: pr => escapeHtml(pr.createdBy.displayName) }] : []),
+                { label: 'Repository', html: pr => `<span title="${escapeHtml(pr.repository.project.name)}">${escapeHtml(pr.repository.name)}</span>` },
+                { label: 'Votes', html: votes },
+                { label: 'Created', html: pr => formatDate(pr.creationDate) },
+            ];
+            const byDate = (a, b) => b.creationDate.localeCompare(a.creationDate);
+
+            setDashboardBody(body, `
+                <h3>Created by me (${created.value.length})</h3>
+                ${renderTable(columns(false), created.value.sort(byDate), 'No active pull request')}
+                <h3>Assigned to me (${reviewing.value.length})</h3>
+                ${renderTable(columns(true), reviewing.value.sort(byDate), 'No active pull request')}`);
+        } catch (e) {
+            showDashboardError(body, e);
+        }
+    }
+
+    async function getWorkItems(ids, fields) {
+        const chunks = [];
+        for (let i = 0; i < ids.length; i += 200) {
+            chunks.push(ids.slice(i, i + 200));
+        }
+        const results = await Promise.all(chunks.map(chunk =>
+            adoFetch('/_apis/wit/workitemsbatch?api-version=7.1', { ids: chunk, fields })));
+        const byId = new Map(results.flatMap(r => r.value).map(wi => [wi.id, wi]));
+        // keep the query order
+        return ids.map(id => byId.get(id)).filter(x => x);
+    }
+
+    const workItemUrl = wi => `/${getOrg()}/${encodeURIComponent(wi.fields['System.TeamProject'] ?? '_')}/_workitems/edit/${wi.id}`;
+
+    async function loadDashboardWorkItems(body, loadId) {
+        try {
+            const result = await adoFetch('/_apis/wit/wiql?api-version=7.1&$top=500', {
+                query: `SELECT [System.Id] FROM WorkItems
+                    WHERE [System.AssignedTo] = @Me AND [System.State] NOT IN ('Closed', 'Done', 'Removed', 'Deployed')
+                    ORDER BY [System.ChangedDate] DESC`
+            });
+            const ids = result.workItems.map(x => x.id);
+            const allItems = await getWorkItems(ids, ['System.Id', 'System.WorkItemType', 'System.Title', 'System.State', 'System.TeamProject', 'System.ChangedDate', 'System.Parent']);
+            if (loadId !== dashboardLoadId) {
+                return;
+            }
+
+            // Hide the children (like tasks) when their parent is already in the list
+            const listedIds = new Set(allItems.map(wi => wi.id));
+            const hiddenChildren = new Map();
+            const items = allItems.filter(wi => {
+                const parentId = wi.fields['System.Parent'];
+                if (!listedIds.has(parentId)) {
+                    return true;
+                }
+                hiddenChildren.set(parentId, [...(hiddenChildren.get(parentId) ?? []), wi]);
+                return false;
+            });
+            // A grandchild's count goes to the listed ancestor
+            const countChildren = id => (hiddenChildren.get(id) ?? []).reduce((count, child) => count + 1 + countChildren(child.id), 0);
+            const childrenTag = wi => {
+                const children = (hiddenChildren.get(wi.id) ?? []);
+                if (!children.length) {
+                    return '';
+                }
+                const tooltip = children.map(c => `${c.id} ${c.fields['System.Title']} (${c.fields['System.State']})`).join('\n');
+                return ` <span class="itw-dash-tag" title="${escapeHtml(tooltip)}">+${countChildren(wi.id)} assigned to me</span>`;
+            };
+
+            const columns = [
+                { label: 'ID', html: wi => `<a href="${workItemUrl(wi)}">${wi.id}</a>` },
+                { label: 'Type', html: wi => escapeHtml(wi.fields['System.WorkItemType']) },
+                { label: 'Title', wrap: true, html: wi => `<a href="${workItemUrl(wi)}">${escapeHtml(wi.fields['System.Title'])}</a>${childrenTag(wi)}` },
+                { label: 'State', html: wi => escapeHtml(wi.fields['System.State']) },
+                { label: 'Project', html: wi => escapeHtml(wi.fields['System.TeamProject']) },
+                { label: 'Changed', html: wi => formatDate(wi.fields['System.ChangedDate']) },
+            ];
+            const hiddenCount = allItems.length - items.length;
+            setDashboardBody(body, `<div class="itw-dash-count">${allItems.length} open, assigned to me${ids.length >= 500 ? ' (first 500)' : ''}${hiddenCount ? `, ${hiddenCount} shown under their parent` : ''}</div>
+                ${renderTable(columns, items, 'No open work item')}`);
+        } catch (e) {
+            showDashboardError(body, e);
+        }
+    }
+
+    function getSavedDashboardQuery() {
+        try {
+            return JSON.parse(localStorage[DASHBOARD_QUERY_KEY] || 'null');
+        } catch {
+            return null;
+        }
+    }
+
+    async function setupDashboardQuery(section, loadId) {
+        const title = section.querySelector('.itw-dash-query-title');
+        const body = section.querySelector('.itw-dash-body');
+        const dialog = section.querySelector('dialog');
+        const nameInput = dialog.querySelector('.itw-dash-query-name');
+        const projectSelect = dialog.querySelector('.itw-dash-project');
+        const querySelect = dialog.querySelector('.itw-dash-queries');
+        const linkInput = dialog.querySelector('.itw-dash-query-link');
+        const dialogError = dialog.querySelector('.itw-dash-error');
+        let saved = getSavedDashboardQuery();
+
+        const showTitle = () => {
+            title.textContent = saved?.name || saved?.queryName || 'Query';
+        };
+        const selectedQueryName = () => querySelect.selectedOptions[0]?.dataset.name ?? '';
+        const updateNamePlaceholder = () => {
+            nameInput.placeholder = selectedQueryName() || saved?.queryName || 'Name of the column';
+        };
+
+        let projectsPromise;
+        const loadProjects = () => {
+            projectsPromise ??= adoFetch('/_apis/projects?api-version=7.1&$top=500').then(projects => {
+                const names = projects.value.map(p => p.name).sort((a, b) => a.localeCompare(b));
+                projectSelect.innerHTML = '<option value="">Choose a project</option>' + names.map(n => `<option>${escapeHtml(n)}</option>`).join('');
+            });
+            return projectsPromise;
+        };
+
+        const loadQueries = async (project, selectedId) => {
+            querySelect.disabled = true;
+            querySelect.innerHTML = '<option value="">Loading...</option>';
+            try {
+                const result = await adoFetch(`/${encodeURIComponent(project)}/_apis/wit/queries?$depth=2&api-version=7.1`);
+                const options = [];
+                const walk = (node, path) => {
+                    const name = path ? `${path} / ${node.name}` : node.name;
+                    if (!node.isFolder) {
+                        options.push(`<option value="${node.id}" data-name="${escapeHtml(node.name)}">${escapeHtml(name)}</option>`);
+                    }
+                    (node.children || []).forEach(c => walk(c, name));
+                };
+                result.value.forEach(n => walk(n, ''));
+                querySelect.innerHTML = '<option value="">Choose a query</option>' + options.join('');
+                querySelect.disabled = false;
+                if (selectedId) {
+                    querySelect.value = selectedId;
+                }
+                updateNamePlaceholder();
+            } catch (e) {
+                dialogError.textContent = `Could not load the queries: ${e.message}`;
+            }
+        };
+
+        projectSelect.addEventListener('change', () => {
+            querySelect.innerHTML = '<option value="">Choose a project first</option>';
+            querySelect.disabled = true;
+            if (projectSelect.value) {
+                loadQueries(projectSelect.value);
+            }
+        });
+        querySelect.addEventListener('change', updateNamePlaceholder);
+        linkInput.addEventListener('change', async () => {
+            dialogError.textContent = '';
+            if (!linkInput.value.trim()) {
+                return;
+            }
+            // https://dev.azure.com/{org}/{project}/_queries/query/{id}/
+            const match = linkInput.value.match(/dev\.azure\.com\/[^/]+\/([^/]+)\/_queries\/(?:query|query-edit)\/([0-9a-f-]{36})/i);
+            if (!match) {
+                dialogError.textContent = 'Not a query link';
+                return;
+            }
+            const project = decodeURIComponent(match[1]);
+            await loadProjects();
+            projectSelect.value = project;
+            await loadQueries(project, match[2]);
+            if (querySelect.value !== match[2]) {
+                dialogError.textContent = 'This query is not in the list (too deep in its folders, or not shared)';
+            }
+        });
+
+        section.querySelector('.itw-dash-query-edit').addEventListener('click', async () => {
+            dialogError.textContent = '';
+            linkInput.value = '';
+            nameInput.value = saved?.name ?? '';
+            updateNamePlaceholder();
+            dialog.showModal();
+            try {
+                await loadProjects();
+            } catch (e) {
+                dialogError.textContent = `Could not load the projects: ${e.message}`;
+                return;
+            }
+            if (saved?.project && !projectSelect.value) {
+                projectSelect.value = saved.project;
+                loadQueries(saved.project, saved.queryId);
+            }
+        });
+        dialog.querySelector('.itw-dash-cancel').addEventListener('click', () => dialog.close());
+        dialog.querySelector('form').addEventListener('submit', e => {
+            if (!projectSelect.value || !querySelect.value) {
+                e.preventDefault();
+                dialogError.textContent = 'Choose a query';
+                return;
+            }
+            saved = {
+                project: projectSelect.value,
+                queryId: querySelect.value,
+                queryName: selectedQueryName(),
+                name: nameInput.value.trim(),
+            };
+            localStorage[DASHBOARD_QUERY_KEY] = JSON.stringify(saved);
+            showTitle();
+            runDashboardQuery(body, saved.project, saved.queryId, dashboardLoadId);
+        });
+
+        showTitle();
+        if (saved?.project && saved.queryId) {
+            runDashboardQuery(body, saved.project, saved.queryId, loadId);
+            if (!saved.queryName) {
+                // saved before the query name was remembered
+                adoFetch(`/${encodeURIComponent(saved.project)}/_apis/wit/queries/${saved.queryId}?api-version=7.1`)
+                    .then(query => {
+                        saved.queryName = query.name;
+                        localStorage[DASHBOARD_QUERY_KEY] = JSON.stringify(saved);
+                        showTitle();
+                    })
+                    .catch(e => console.warn('Dashboard query name', e));
+            }
+        } else {
+            body.innerHTML = '<div class="itw-dash-empty">Choose a query with ⚙</div>';
+        }
+    }
+
+    async function runDashboardQuery(body, project, queryId, loadId) {
+        body.innerHTML = 'Loading...';
+        try {
+            const result = await adoFetch(`/${encodeURIComponent(project)}/_apis/wit/wiql/${queryId}?api-version=7.1&$top=500`);
+            // Tree and one-hop queries return relations instead of work items
+            const ids = [...new Set((result.workItems ?? result.workItemRelations?.map(r => r.target) ?? []).map(x => x.id))];
+            const fields = result.columns.map(c => c.referenceName);
+            const items = await getWorkItems(ids, [...new Set(['System.Id', 'System.TeamProject', ...fields])]);
+            if (loadId !== dashboardLoadId) {
+                return;
+            }
+
+            const columns = result.columns.map(c => ({
+                label: c.name,
+                wrap: c.referenceName === 'System.Title' || c.referenceName === 'System.Description',
+                html: wi => {
+                    const value = escapeHtml(formatFieldValue(wi.fields[c.referenceName]));
+                    return c.referenceName === 'System.Id' || c.referenceName === 'System.Title'
+                        ? `<a href="${workItemUrl(wi)}">${value}</a>`
+                        : value;
+                }
+            }));
+            const queryUrl = `/${getOrg()}/${encodeURIComponent(project)}/_queries/query/${queryId}/`;
+            setDashboardBody(body, `<div class="itw-dash-count">${items.length} work items${ids.length >= 500 ? ' (first 500)' : ''} · <a href="${queryUrl}">open the query</a></div>
+                ${renderTable(columns, items, 'The query returned no work item')}`);
+        } catch (e) {
+            showDashboardError(body, e);
+        }
     }
 }

@@ -94,6 +94,229 @@ ul.responsive-tags-list.work-item-grid-tags li.tag-item {
     visibility: visible !important;
 }
 
+/* Home page "My dashboard" tab */
+body.itw-dashboard-active .suite-me-page-tabbar ~ :not(#itw-dashboard) {
+    display: none !important;
+}
+
+/* the filters and buttons of the other tabs */
+body.itw-dashboard-active .suite-me-page-tabbar > :not(.bolt-tabbar-tabs, #itw-dash-filter) {
+    display: none;
+}
+
+#itw-dashboard {
+    width: 100%;
+    padding: 16px 32px 64px;
+    box-sizing: border-box;
+    color: var(--text-primary-color);
+    /* pull requests, work items and query side by side */
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+@media only screen and (max-width: 1800px) {
+    #itw-dashboard {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+#itw-dashboard section {
+    min-width: 0;
+    padding: 16px 20px;
+    background: var(--background-color);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .12);
+}
+
+#itw-dashboard h2 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+#itw-dashboard h3 {
+    margin: 16px 0 4px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#itw-dashboard input, #itw-dashboard select {
+    padding: 6px 8px;
+    border: 1px solid rgba(var(--palette-neutral-20), 1);
+    border-radius: 2px;
+    background: var(--background-color);
+    color: inherit;
+    font: inherit;
+}
+
+#itw-dash-filter {
+    width: 300px;
+    margin-right: 16px;
+    padding: 4px 8px;
+    border: 1px solid rgba(var(--palette-neutral-20), 1);
+    border-radius: 2px;
+    background: var(--background-color);
+    color: var(--text-primary-color);
+    font: inherit;
+}
+
+#itw-dashboard .itw-dash-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#itw-dashboard .itw-dash-section-header h2 {
+    flex-grow: 1;
+}
+
+#itw-dashboard .itw-dash-query-edit {
+    margin: 0 0 8px;
+    padding: 2px 8px;
+    border: none;
+    border-radius: 2px;
+    background: none;
+    color: var(--text-secondary-color);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#itw-dashboard .itw-dash-query-edit:hover {
+    background: rgba(var(--palette-neutral-8), 1);
+}
+
+#itw-dashboard .itw-dash-query-dialog {
+    width: 600px;
+    padding: 24px;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .3);
+    background: var(--background-color);
+    color: var(--text-primary-color);
+}
+
+#itw-dashboard .itw-dash-query-dialog::backdrop {
+    background: rgba(0, 0, 0, .4);
+}
+
+#itw-dashboard .itw-dash-query-dialog label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+#itw-dashboard .itw-dash-query-dialog label > * {
+    font-weight: normal;
+}
+
+#itw-dashboard .itw-dash-query-dialog .itw-dash-error {
+    min-height: 20px;
+    margin-top: 8px;
+}
+
+#itw-dashboard .itw-dash-dialog-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+#itw-dashboard .itw-dash-dialog-buttons button {
+    padding: 6px 16px;
+    border: 1px solid rgba(var(--palette-neutral-20), 1);
+    border-radius: 2px;
+    background: var(--background-color);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+#itw-dashboard .itw-dash-dialog-buttons .itw-dash-primary {
+    border-color: var(--communication-background);
+    background: var(--communication-background);
+    color: #fff;
+}
+
+/* wide query results scroll inside their column */
+#itw-dashboard .itw-dash-body {
+    overflow-x: auto;
+}
+
+.itw-dash-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.itw-dash-table td, .itw-dash-table th {
+    white-space: nowrap;
+}
+
+.itw-dash-table td.itw-dash-wrap {
+    white-space: normal;
+    min-width: 250px;
+}
+
+.itw-dash-table th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary-color);
+    border-bottom: 1px solid rgba(var(--palette-neutral-10), 1);
+}
+
+.itw-dash-table th, .itw-dash-table td {
+    padding: 6px 8px;
+    vertical-align: top;
+}
+
+.itw-dash-table tbody tr:hover {
+    background: rgba(var(--palette-neutral-4), 1);
+}
+
+.itw-dash-table a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.itw-dash-table a:hover {
+    text-decoration: underline;
+}
+
+.itw-dash-table td:first-child a {
+    color: var(--communication-foreground);
+}
+
+.itw-dash-tag {
+    padding: 0 6px;
+    border-radius: 8px;
+    font-size: 12px;
+    background: rgba(var(--palette-neutral-8), 1);
+}
+
+.itw-dash-vote {
+    margin-right: 4px;
+    font-weight: 600;
+}
+
+.itw-dash-vote-ok {
+    color: #107c10;
+}
+
+.itw-dash-vote-ko {
+    color: #c50f1f;
+}
+
+.itw-dash-count, .itw-dash-empty {
+    color: var(--text-secondary-color);
+    margin-bottom: 4px;
+}
+
+.itw-dash-error {
+    color: #c50f1f;
+}
+
 /* wide */
 @media only screen and (min-width: 1800px) {
     /* put important stuff on the right to read it from the center */
@@ -333,6 +556,43 @@ ul.responsive-tags-list.work-item-grid-tags li.tag-item {
 
     .bolt-messagebar.severity-info .bolt-messagebar-content {
         padding: 6px;
+    }
+
+    /* Home page: org title, tabs and filter all in the top bar */
+    .region-page .custom-scrollbar > .bolt-header.hostname-header {
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: auto;
+        height: 48px;
+        margin: 0;
+        padding: 0;
+        align-items: center;
+        z-index: 1000 !important;
+    }
+
+    .hostname-header .bolt-header-content-area,
+    .hostname-header .bolt-header-title-area {
+        align-items: center;
+        margin-top: 0;
+    }
+
+    .suite-me-page-tabbar.bolt-tabbar {
+        position: fixed !important;
+        top: 0;
+        left: 400px;
+        right: 440px;
+        height: 48px;
+        padding: 0;
+        background: none !important;
+        z-index: 1000 !important;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    .suite-me-page-tabbar .bolt-tabbar-tabs.tall {
+        height: 48px;
+        margin: 0;
     }
 
     /* full screen mode */
