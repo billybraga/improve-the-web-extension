@@ -230,6 +230,33 @@ ul.responsive-tags-list.work-item-grid-tags li.tag-item {
         border-left: 1px solid rgba(0, 0, 0, .08);
         border-right: 1px solid rgba(0, 0, 0, .08);
     }
+
+    /* PR: normal width, except files, detected with :has instead of the js class to avoid a layout shift on load */
+    body:has(.repos-pr-details-page):not(:has(.repos-pr-details-page-tabbar a[aria-selected=true][href$="_a=files"])) .full-size.region-page > .flex-column.full-size.vertical-layout {
+        align-self: center !important;
+        width: 1750px;
+        border-left: 1px solid rgba(0, 0, 0, .08);
+        border-right: 1px solid rgba(0, 0, 0, .08);
+    }
+
+    /* PR files: code uses the full width, but keep the header and tabs where they are in the normal width */
+    body:has(.repos-pr-details-page-tabbar a[aria-selected=true][href$="_a=files"]) .project-header,
+    body:has(.repos-pr-details-page-tabbar a[aria-selected=true][href$="_a=files"]) .project-navigation {
+        padding-left: calc((100vw - 1750px) / 2 + 1px) !important;
+        padding-right: calc((100vw - 1750px) / 2 + 1px) !important;
+        box-sizing: border-box !important;
+    }
+
+    body:has(.repos-pr-details-page-tabbar a[aria-selected=true][href$="_a=files"]) .repos-pr-details-page > .repos-pr-header {
+        margin-left: calc((100vw - 1750px) / 2 + 13px) !important;
+        margin-right: calc((100vw - 1750px) / 2 + 13px) !important;
+    }
+
+    body:has(.repos-pr-details-page-tabbar a[aria-selected=true][href$="_a=files"]) .repos-pr-details-page > .repos-pr-details-page-tabbar {
+        padding-left: calc((100vw - 1750px) / 2 + 25px) !important;
+        padding-right: calc((100vw - 1750px) / 2 + 25px) !important;
+        box-sizing: border-box !important;
+    }
 }
 
 /* wide and thin */

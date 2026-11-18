@@ -46,7 +46,7 @@ if (!window.__itwLoaded) {
             page = CREATE_PR_PAGE;
         } else if (lastHref.includes("/pullrequest/")) {
             page = EDIT_PR_PAGE;
-            // isNormalWidth = !location.search.includes('_a=files');
+            // width is handled in css with :has, to avoid a layout shift when the page loads
         } else if (lastHref.includes("/_git/")) {
             if (lastHref.includes("_a=content") || !lastHref.includes("_a=")) {
                 page = SOURCE_CODE_PAGE;
