@@ -323,8 +323,33 @@ if (!window.__itwLoaded) {
     }
 
     function registerHotKeys() {
+        // Ctrl+S or Ctrl+Enter in a PR or work item comment posts it
+        document.addEventListener('keydown', e => {
+            if ((e.key !== 's' && e.key !== 'Enter') || !e.ctrlKey || e.shiftKey || e.altKey) {
+                return;
+            }
+
+            const postBtn = getCommentPostButton(e.target);
+            if (!postBtn) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (postBtn.disabled || postBtn.classList.contains('disabled')) {
+                console.log("Skipping comment post", postBtn);
+                return;
+            }
+            postBtn.click();
+        }, true);
+
         document.addEventListener('keyup', e => {
             if (e.key !== 's' || !e.ctrlKey || e.shiftKey) {
+                return;
+            }
+
+            if (getCommentPostButton(e.target)) {
                 return;
             }
 
@@ -337,5 +362,28 @@ if (!window.__itwLoaded) {
             }
             saveBtn.click();
         });
+    }
+
+    /** @param {EventTarget} target */
+    function getCommentPostButton(target) {
+        if (target?.tagName !== 'TEXTAREA') {
+            return null;
+        }
+
+        // Work item discussion, or PR comment (new thread, reply or code comment)
+        const editor = target.closest('.comment-editor, [class*=repos-comment-editor]');
+        if (!editor) {
+            return null;
+        }
+
+        // The post button (Save or Comment) is in the closest parent that has a primary button
+        for (let e = editor; e && e !== document.body; e = e.parentElement) {
+            const button = e.querySelector('button.primary');
+            if (button) {
+                return button;
+            }
+        }
+
+        return null;
     }
 }
