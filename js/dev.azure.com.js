@@ -392,7 +392,6 @@ if (!window.__itwLoaded) {
 
     const DASHBOARD_HASH = '#itw-dashboard';
     const DASHBOARD_QUERY_KEY = '__itw_dashboard_query';
-    let dashboardLoadId = 0;
 
     function getOrg() {
         return location.pathname.split('/')[1];
@@ -503,12 +502,19 @@ if (!window.__itwLoaded) {
         const root = document.createElement('div');
         root.id = 'itw-dashboard';
         root.innerHTML = `
-            <section id="itw-dash-prs"><h2>My pull requests</h2><div class="itw-dash-body">Loading...</div></section>
-            <section id="itw-dash-wis"><h2>My work items</h2><div class="itw-dash-body">Loading...</div></section>
+            <section id="itw-dash-prs">
+                <div class="itw-dash-section-header"><h2>My pull requests</h2>${REFRESH_BUTTON}</div>
+                <div class="itw-dash-body">Loading...</div>
+            </section>
+            <section id="itw-dash-wis">
+                <div class="itw-dash-section-header"><h2>My work items</h2>${REFRESH_BUTTON}</div>
+                <div class="itw-dash-body">Loading...</div>
+            </section>
             <section id="itw-dash-query">
                 <div class="itw-dash-section-header">
                     <h2 class="itw-dash-query-title">Query</h2>
-                    <button type="button" class="itw-dash-query-edit" title="Choose the query and its name">⚙</button>
+                    ${REFRESH_BUTTON}
+                    <button type="button" class="itw-dash-icon itw-dash-query-edit" title="Choose the query and its name">⚙</button>
                 </div>
                 <div class="itw-dash-body"></div>
                 <dialog class="itw-dash-query-dialog">
@@ -528,10 +534,49 @@ if (!window.__itwLoaded) {
             </section>`;
         container.appendChild(root);
 
-        const loadId = ++dashboardLoadId;
-        loadDashboardPrs(root.querySelector('#itw-dash-prs .itw-dash-body'), loadId);
-        loadDashboardWorkItems(root.querySelector('#itw-dash-wis .itw-dash-body'), loadId);
-        setupDashboardQuery(root.querySelector('#itw-dash-query'), loadId);
+        // Each section knows how to refresh itself
+        const prs = root.querySelector('#itw-dash-prs');
+        prs.__itwRefresh = () => loadDashboardPrs(prs.querySelector('.itw-dash-body'));
+        const wis = root.querySelector('#itw-dash-wis');
+        wis.__itwRefresh = () => loadDashboardWorkItems(wis.querySelector('.itw-dash-body'));
+        setupDashboardQuery(root.querySelector('#itw-dash-query'));
+        root.querySelectorAll('.itw-dash-refresh').forEach(button =>
+            button.addEventListener('click', () => button.closest('section').__itwRefresh?.()));
+
+        prs.__itwRefresh();
+        wis.__itwRefresh();
+        lastDashboardRefresh = Date.now();
+    }
+
+    const REFRESH_BUTTON = '<button type="button" class="itw-dash-icon itw-dash-refresh" title="Refresh (F5 refreshes everything)">↻</button>';
+    const DASHBOARD_AUTO_REFRESH_MS = 5 * 60 * 1000;
+    let lastDashboardRefresh = 0;
+
+    function refreshDashboard() {
+        lastDashboardRefresh = Date.now();
+        document.querySelectorAll('#itw-dashboard section').forEach(section => section.__itwRefresh?.());
+    }
+
+    // Auto refresh every 5 minutes, or when coming back to the tab after that
+    function maybeAutoRefreshDashboard() {
+        if (document.getElementById('itw-dashboard') && !document.hidden
+            && Date.now() - lastDashboardRefresh >= DASHBOARD_AUTO_REFRESH_MS) {
+            refreshDashboard();
+        }
+    }
+    setInterval(maybeAutoRefreshDashboard, 30 * 1000);
+    document.addEventListener('visibilitychange', maybeAutoRefreshDashboard);
+
+    /** Starts loading a section; returns a token to check that no newer load started since */
+    function startDashboardLoad(body) {
+        const token = {};
+        body.__itwLoad = token;
+        body.closest('section')?.classList.add('itw-dash-loading');
+        return token;
+    }
+
+    function isCurrentDashboardLoad(body, token) {
+        return body.__itwLoad === token && body.isConnected;
     }
 
     function applyDashboardFilter() {
@@ -545,7 +590,12 @@ if (!window.__itwLoaded) {
 
     /** Fills a dashboard section, keeping the filter applied */
     function setDashboardBody(body, html) {
+        // keep the scroll position when refreshing
+        const { scrollTop, scrollLeft } = body;
         body.innerHTML = html;
+        body.scrollTop = scrollTop;
+        body.scrollLeft = scrollLeft;
+        body.closest('section')?.classList.remove('itw-dash-loading');
         if (body.isConnected) {
             applyDashboardFilter();
         }
@@ -560,7 +610,7 @@ if (!window.__itwLoaded) {
             return;
         }
         e.preventDefault();
-        showDashboard();
+        refreshDashboard();
     }, true);
 
     async function adoFetch(path, body) {
@@ -627,11 +677,13 @@ if (!window.__itwLoaded) {
     function showDashboardError(body, error) {
         console.error('Dashboard', error);
         body.innerHTML = `<div class="itw-dash-error">Could not load: ${escapeHtml(error.message)}</div>`;
+        body.closest('section')?.classList.remove('itw-dash-loading');
     }
 
     const VOTES = { 10: 'Approved', 5: 'Approved with suggestions', 0: '', [-5]: 'Waiting for author', [-10]: 'Rejected' };
 
-    async function loadDashboardPrs(body, loadId) {
+    async function loadDashboardPrs(body) {
+        const token = startDashboardLoad(body);
         try {
             const me = await getCurrentUserId();
             const query = 'api-version=7.1&searchCriteria.status=active&$top=200';
@@ -639,7 +691,7 @@ if (!window.__itwLoaded) {
                 adoFetch(`/_apis/git/pullrequests?${query}&searchCriteria.creatorId=${me}`),
                 adoFetch(`/_apis/git/pullrequests?${query}&searchCriteria.reviewerId=${me}`),
             ]);
-            if (loadId !== dashboardLoadId) {
+            if (!isCurrentDashboardLoad(body, token)) {
                 return;
             }
 
@@ -687,7 +739,8 @@ if (!window.__itwLoaded) {
 
     const workItemUrl = wi => `/${getOrg()}/${encodeURIComponent(wi.fields['System.TeamProject'] ?? '_')}/_workitems/edit/${wi.id}`;
 
-    async function loadDashboardWorkItems(body, loadId) {
+    async function loadDashboardWorkItems(body) {
+        const token = startDashboardLoad(body);
         try {
             const result = await adoFetch('/_apis/wit/wiql?api-version=7.1&$top=500', {
                 query: `SELECT [System.Id] FROM WorkItems
@@ -696,7 +749,7 @@ if (!window.__itwLoaded) {
             });
             const ids = result.workItems.map(x => x.id);
             const allItems = await getWorkItems(ids, ['System.Id', 'System.WorkItemType', 'System.Title', 'System.State', 'System.TeamProject', 'System.ChangedDate', 'System.Parent']);
-            if (loadId !== dashboardLoadId) {
+            if (!isCurrentDashboardLoad(body, token)) {
                 return;
             }
 
@@ -746,7 +799,7 @@ if (!window.__itwLoaded) {
         }
     }
 
-    async function setupDashboardQuery(section, loadId) {
+    async function setupDashboardQuery(section) {
         const title = section.querySelector('.itw-dash-query-title');
         const body = section.querySelector('.itw-dash-body');
         const dialog = section.querySelector('dialog');
@@ -859,12 +912,15 @@ if (!window.__itwLoaded) {
             };
             localStorage[DASHBOARD_QUERY_KEY] = JSON.stringify(saved);
             showTitle();
-            runDashboardQuery(body, saved.project, saved.queryId, dashboardLoadId);
+            runDashboardQuery(body, saved.project, saved.queryId);
         });
+
+        // the refresh button keeps the current results until the new ones arrive
+        section.__itwRefresh = () => saved?.queryId && runDashboardQuery(body, saved.project, saved.queryId, true);
 
         showTitle();
         if (saved?.project && saved.queryId) {
-            runDashboardQuery(body, saved.project, saved.queryId, loadId);
+            runDashboardQuery(body, saved.project, saved.queryId);
             if (!saved.queryName) {
                 // saved before the query name was remembered
                 adoFetch(`/${encodeURIComponent(saved.project)}/_apis/wit/queries/${saved.queryId}?api-version=7.1`)
@@ -880,19 +936,25 @@ if (!window.__itwLoaded) {
         }
     }
 
-    async function runDashboardQuery(body, project, queryId, loadId) {
-        body.innerHTML = 'Loading...';
+    async function runDashboardQuery(body, project, queryId, isRefresh = false) {
+        const token = startDashboardLoad(body);
+        if (!isRefresh) {
+            body.innerHTML = 'Loading...';
+        }
         try {
             const result = await adoFetch(`/${encodeURIComponent(project)}/_apis/wit/wiql/${queryId}?api-version=7.1&$top=500`);
             // Tree and one-hop queries return relations instead of work items
             const ids = [...new Set((result.workItems ?? result.workItemRelations?.map(r => r.target) ?? []).map(x => x.id))];
-            const fields = result.columns.map(c => c.referenceName);
+            // Not useful in the narrow column
+            const hiddenFields = ['Microsoft.VSTS.Common.Priority', 'System.Parent'];
+            const queryColumns = result.columns.filter(c => !hiddenFields.includes(c.referenceName));
+            const fields = queryColumns.map(c => c.referenceName);
             const items = await getWorkItems(ids, [...new Set(['System.Id', 'System.TeamProject', ...fields])]);
-            if (loadId !== dashboardLoadId) {
+            if (!isCurrentDashboardLoad(body, token)) {
                 return;
             }
 
-            const columns = result.columns.map(c => ({
+            const columns = queryColumns.map(c => ({
                 label: c.name,
                 wrap: c.referenceName === 'System.Title' || c.referenceName === 'System.Description',
                 html: wi => {

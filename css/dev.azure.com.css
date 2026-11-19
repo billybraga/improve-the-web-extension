@@ -106,23 +106,25 @@ body.itw-dashboard-active .suite-me-page-tabbar > :not(.bolt-tabbar-tabs, #itw-d
 
 #itw-dashboard {
     width: 100%;
-    padding: 16px 32px 64px;
+    padding: 16px 32px;
     box-sizing: border-box;
     color: var(--text-primary-color);
-    /* pull requests, work items and query side by side */
+    /* pull requests, work items and query side by side, filling the rest of the window */
+    flex: 1 1 0;
+    min-height: 0;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
     gap: 16px;
     align-items: start;
 }
 
-@media only screen and (max-width: 1800px) {
-    #itw-dashboard {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
+/* each column is at most as high as the window, and scrolls inside */
 #itw-dashboard section {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    box-sizing: border-box;
     min-width: 0;
     padding: 16px 20px;
     background: var(--background-color);
@@ -172,7 +174,7 @@ body.itw-dashboard-active .suite-me-page-tabbar > :not(.bolt-tabbar-tabs, #itw-d
     flex-grow: 1;
 }
 
-#itw-dashboard .itw-dash-query-edit {
+#itw-dashboard .itw-dash-icon {
     margin: 0 0 8px;
     padding: 2px 8px;
     border: none;
@@ -183,7 +185,17 @@ body.itw-dashboard-active .suite-me-page-tabbar > :not(.bolt-tabbar-tabs, #itw-d
     cursor: pointer;
 }
 
-#itw-dashboard .itw-dash-query-edit:hover {
+#itw-dashboard section.itw-dash-loading .itw-dash-refresh {
+    animation: itw-dash-spin 1s linear infinite;
+}
+
+@keyframes itw-dash-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#itw-dashboard .itw-dash-icon:hover {
     background: rgba(var(--palette-neutral-8), 1);
 }
 
@@ -240,9 +252,26 @@ body.itw-dashboard-active .suite-me-page-tabbar > :not(.bolt-tabbar-tabs, #itw-d
     color: #fff;
 }
 
-/* wide query results scroll inside their column */
 #itw-dashboard .itw-dash-body {
-    overflow-x: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    /* always visible, the page's scroll bars only show on hover */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, .35) transparent;
+}
+
+/* stacked on narrower screens: the page scrolls instead */
+@media only screen and (max-width: 1800px) {
+    #itw-dashboard {
+        flex: none;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: none;
+    }
+
+    #itw-dashboard section {
+        max-height: none;
+    }
 }
 
 .itw-dash-table {
@@ -260,6 +289,9 @@ body.itw-dashboard-active .suite-me-page-tabbar > :not(.bolt-tabbar-tabs, #itw-d
 }
 
 .itw-dash-table th {
+    position: sticky;
+    top: 0;
+    background: var(--background-color);
     text-align: left;
     font-weight: 600;
     color: var(--text-secondary-color);
