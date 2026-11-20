@@ -21,6 +21,7 @@ if (!window.__itwLoaded) {
     let lastHref;
     setInterval(checkPage, 100);
     setInterval(ensureDashboardTab, 300);
+    setInterval(highlightSummaryDiffs, 500);
     registerHotKeys();
 
     function checkPage() {
@@ -1032,6 +1033,246 @@ if (!window.__itwLoaded) {
                 ${renderTable(columns, items, 'The query returned no work item')}`);
         } catch (e) {
             showDashboardError(body, e);
+        }
+    }
+
+    // ---- Syntax highlighting of the PR diffs that show several files ----
+    // The single file view uses Monaco, which highlights, but the multi-file view is plain text.
+    // Colors are set with the CSS Custom Highlight API, so the page's DOM (owned by React) is not touched.
+
+    // not after a dot: obj.type is a property, not the type keyword
+    const keywordsRegex = words => new RegExp(`(?<!\\.)\\b(?:${words.split(' ').join('|')})\\b`);
+
+    /** Each rule is [regex without capturing groups, highlight class] */
+    function makeLanguage(rules, flags = 'gm') {
+        return {
+            regex: new RegExp(rules.map(([regex]) => `(${regex.source})`).join('|'), flags),
+            classes: rules.map(([, cls]) => cls),
+        };
+    }
+
+    const BLOCK_COMMENT = /\/\*[\s\S]*?(?:\*\/|(?![\s\S]))/;
+    // " * text" lines of a doc comment that started before the visible part of the diff
+    const COMMENT_CONTINUATION = /^[ \t]*\*(?:[ \t].*|$)/;
+    const C_STRINGS = /@"(?:[^"]|"")*"|\$?"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/;
+    const NUMBER = /\b(?:0[xX][\da-fA-F_]+|\d[\d_]*(?:\.\d+)?(?:[eE][+-]?\d+)?[a-zA-Z]*)\b/;
+    const FUNCTION_CALL = /\b[A-Za-z_]\w*(?=\s*(?:<[\w\s,.<>?[\]]*>)?\()/;
+    const PASCAL_CASE = /\b[A-Z]\w*\b/;
+    const HTML_RULES = [
+        [/<!--[\s\S]*?(?:-->|(?![\s\S]))/, 'comment'],
+        [/<\/?[A-Za-z][\w:.-]*|\/?>/, 'tag'],
+        [/(?<=\s)[@:#]?[\w.:-]+(?==)/, 'attr'],
+        [/"[^"\n]*"|'[^'\n]*'/, 'string'],
+        [/&#?\w+;/, 'meta'],
+    ];
+
+    const CS_KEYWORDS = keywordsRegex('abstract as async await base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach get goto if implicit in init int interface internal is lock long namespace new null object operator out override params private protected public readonly record ref required return sbyte sealed set short sizeof stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using var virtual void volatile when where while with yield nameof value');
+    const TS_KEYWORDS = keywordsRegex('abstract any as async await boolean break case catch class const constructor continue debugger declare default delete do else enum export extends false finally for from function get if implements import in infer instanceof interface keyof let module namespace never new null number object of private protected public readonly return satisfies set static string super switch symbol this throw true try type typeof undefined unknown var void while with yield');
+
+    const cLikeRules = keywords => [
+        [/\/\/.*/, 'comment'],
+        [BLOCK_COMMENT, 'comment'],
+        [COMMENT_CONTINUATION, 'comment'],
+        [C_STRINGS, 'string'],
+        [/^[ \t]*#\w+.*|@\w+/, 'meta'],
+        [NUMBER, 'number'],
+        [keywords, 'keyword'],
+        [FUNCTION_CALL, 'function'],
+        [PASCAL_CASE, 'type'],
+    ];
+
+    const HIGHLIGHT_LANGUAGES = {
+        cs: makeLanguage(cLikeRules(CS_KEYWORDS)),
+        ts: makeLanguage(cLikeRules(TS_KEYWORDS)),
+        vue: makeLanguage([...HTML_RULES.slice(0, 3), ...cLikeRules(TS_KEYWORDS)]),
+        html: makeLanguage(HTML_RULES),
+        css: makeLanguage([
+            [BLOCK_COMMENT, 'comment'],
+            [/\/\/.*/, 'comment'],
+            [/"[^"\n]*"|'[^'\n]*'/, 'string'],
+            [/@[\w-]+|!important/, 'keyword'],
+            [/\$[\w-]+|--[\w-]+/, 'variable'],
+            [/[\w-]+(?=\s*:(?!:)[^;{}\n]*(?:;|$))/, 'attr'],
+            [/#[\da-fA-F]{3,8}\b|-?\b\d*\.?\d+(?:px|em|rem|%|vh|vw|s|ms|deg|fr)?/, 'number'],
+            [/[.#&][\w-]+/, 'tag'],
+        ]),
+        json: makeLanguage([
+            [/\/\/.*/, 'comment'],
+            [/"(?:[^"\\\n]|\\.)*"(?=\s*:)/, 'key'],
+            [/"(?:[^"\\\n]|\\.)*"/, 'string'],
+            [NUMBER, 'number'],
+            [/\b(?:true|false|null)\b/, 'keyword'],
+        ]),
+        yaml: makeLanguage([
+            [/(?:^|(?<=\s))#.*/, 'comment'],
+            [/^[ \t]*(?:- )?[\w.\/-]+(?=:(?:\s|$))/, 'key'],
+            [/"(?:[^"\\\n]|\\.)*"|'[^'\n]*'/, 'string'],
+            [/\$\{\{[^}\n]*\}\}|\$\([^)\n]*\)/, 'variable'],
+            [/\b(?:true|false|null|yes|no)\b/, 'keyword'],
+            [NUMBER, 'number'],
+        ]),
+        sql: makeLanguage([
+            [/--.*/, 'comment'],
+            [BLOCK_COMMENT, 'comment'],
+            [/N?'(?:[^'\n]|'')*'/, 'string'],
+            [NUMBER, 'number'],
+            [keywordsRegex('add alter and as asc begin between by case cast check column commit constraint create cross declare default delete desc distinct drop else end exec exists foreign from full go group having if in index inner insert into is join key left like merge not null on or order outer primary procedure references return right rollback select set table then top transaction union unique update values view when where while with'), 'keyword'],
+            [/\b(?:bigint|bit|char|date|datetime|datetime2|datetimeoffset|decimal|float|int|money|nchar|nvarchar|smallint|tinyint|uniqueidentifier|varchar)\b/, 'type'],
+        ], 'gim'),
+        shell: makeLanguage([
+            [/(?:^|(?<=\s))#.*/, 'comment'],
+            [/"(?:[^"\\\n]|\\.)*"|'[^'\n]*'/, 'string'],
+            [/\$\{[^}\n]*\}|\$[\w@#?*!-]+/, 'variable'],
+            [keywordsRegex('if then else elif fi for in do done while until case esac function return local export readonly set shift exit break continue param foreach switch throw try catch finally'), 'keyword'],
+            [/(?<=\s)--?[\w-]+/, 'attr'],
+            [NUMBER, 'number'],
+        ]),
+        python: makeLanguage([
+            [/#.*/, 'comment'],
+            [/"""[\s\S]*?(?:"""|(?![\s\S]))|'''[\s\S]*?(?:'''|(?![\s\S]))|[rbfu]*"(?:[^"\\\n]|\\.)*"|[rbfu]*'(?:[^'\\\n]|\\.)*'/, 'string'],
+            [/@\w+/, 'meta'],
+            [NUMBER, 'number'],
+            [keywordsRegex('and as assert async await break class continue def del elif else except False finally for from global if import in is lambda None nonlocal not or pass raise return self True try while with yield'), 'keyword'],
+            [FUNCTION_CALL, 'function'],
+            [PASCAL_CASE, 'type'],
+        ]),
+    };
+
+    const HIGHLIGHT_EXTENSIONS = {
+        cs: 'cs', csx: 'cs',
+        ts: 'ts', tsx: 'ts', js: 'ts', jsx: 'ts', mjs: 'ts', cjs: 'ts',
+        vue: 'vue',
+        html: 'html', htm: 'html', xml: 'html', csproj: 'html', props: 'html', targets: 'html', config: 'html',
+        resx: 'html', xaml: 'html', svg: 'html', nuspec: 'html', cshtml: 'html', razor: 'html',
+        css: 'css', scss: 'css', less: 'css',
+        json: 'json', jsonc: 'json',
+        yml: 'yaml', yaml: 'yaml',
+        sql: 'sql',
+        sh: 'shell', bash: 'shell', zsh: 'shell', ps1: 'shell', psm1: 'shell',
+        py: 'python',
+    };
+
+    function getHighlightLanguage(path) {
+        const name = path.split('/').pop().toLowerCase();
+        if (name === 'dockerfile') {
+            return HIGHLIGHT_LANGUAGES.shell;
+        }
+        const extension = name.includes('.') ? name.split('.').pop() : '';
+        return HIGHLIGHT_LANGUAGES[HIGHLIGHT_EXTENSIONS[extension]];
+    }
+
+    const highlightRegistry = new Map();
+    /** Highlighted diff side (.repos-summary-diff-blocks) => { signature, ranges: [highlight, range][] } */
+    const highlightedDiffs = new Map();
+
+    function getHighlight(cls) {
+        if (!highlightRegistry.has(cls)) {
+            const highlight = new Highlight();
+            CSS.highlights.set(`itw-hl-${cls}`, highlight);
+            highlightRegistry.set(cls, highlight);
+        }
+        return highlightRegistry.get(cls);
+    }
+
+    function clearDiffHighlight(blocks) {
+        highlightedDiffs.get(blocks)?.ranges.forEach(([highlight, range]) => highlight.delete(range));
+        highlightedDiffs.delete(blocks);
+    }
+
+    function highlightSummaryDiffs() {
+        if (!window.CSS?.highlights || !window.Highlight) {
+            return;
+        }
+
+        // Forget the diffs that are not on the page anymore
+        for (const blocks of highlightedDiffs.keys()) {
+            if (!blocks.isConnected) {
+                clearDiffHighlight(blocks);
+            }
+        }
+
+        document.querySelectorAll('.repos-summary-diff-blocks').forEach(blocks => {
+            // Cheap check that the lines did not change since the last time (diffs load and expand lazily)
+            const signature = `${blocks.childElementCount}:${blocks.textContent.length}`;
+            if (highlightedDiffs.get(blocks)?.signature === signature) {
+                return;
+            }
+            clearDiffHighlight(blocks);
+            const ranges = [];
+            highlightedDiffs.set(blocks, { signature, ranges });
+
+            const card = blocks.closest('.repos-summary-header');
+            const path = card?.querySelector('.text-ellipsis.margin-right-4 > .secondary-text')?.textContent
+                ?? card?.querySelector('.text-ellipsis.margin-right-4')?.textContent ?? '';
+            const language = getHighlightLanguage(path.trim());
+            if (!language) {
+                return;
+            }
+
+            for (const block of getDiffCodeBlocks(blocks)) {
+                highlightCodeBlock(block, language, ranges);
+            }
+        });
+    }
+
+    /**
+     * The code of a diff side, cut in blocks of consecutive lines, as the text to tokenize
+     * and the text nodes it comes from: { text, segments: { node, start }[] }[]
+     */
+    function getDiffCodeBlocks(blocks) {
+        const result = [];
+        let current = null;
+        let previousLine = 0;
+
+        blocks.querySelectorAll('.repos-line-content:not(.filler):not(.v-align-middle)').forEach(line => {
+            const lineNumber = +line.dataset.mline || +line.dataset.oline || 0;
+            if (!current || lineNumber !== previousLine + 1) {
+                current = { text: '', segments: [] };
+                result.push(current);
+            } else {
+                current.text += '\n';
+            }
+            previousLine = lineNumber;
+
+            const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT, {
+                acceptNode: node => node.parentElement.closest('.screen-reader-only') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+            });
+            for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                current.segments.push({ node, start: current.text.length });
+                current.text += node.textContent;
+            }
+        });
+
+        return result;
+    }
+
+    function highlightCodeBlock({ text, segments }, language, ranges) {
+        let segmentIndex = 0;
+        for (const match of text.matchAll(language.regex)) {
+            if (!match[0].length) {
+                continue;
+            }
+            const cls = language.classes[match.findIndex((group, i) => i > 0 && group !== undefined) - 1];
+            const highlight = getHighlight(cls);
+            const start = match.index;
+            const end = start + match[0].length;
+
+            // Tokens are in order: skip the text nodes before this token
+            while (segmentIndex < segments.length
+                && segments[segmentIndex].start + segments[segmentIndex].node.length <= start) {
+                segmentIndex++;
+            }
+            // A token can span several text nodes (multi-line comments and strings)
+            for (let i = segmentIndex; i < segments.length && segments[i].start < end; i++) {
+                const { node, start: nodeStart } = segments[i];
+                const range = new Range();
+                range.setStart(node, Math.max(start, nodeStart) - nodeStart);
+                range.setEnd(node, Math.min(end, nodeStart + node.length) - nodeStart);
+                if (!range.collapsed) {
+                    highlight.add(range);
+                    ranges.push([highlight, range]);
+                }
+            }
         }
     }
 }

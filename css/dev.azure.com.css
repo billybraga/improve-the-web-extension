@@ -94,6 +94,19 @@ ul.responsive-tags-list.work-item-grid-tags li.tag-item {
     visibility: visible !important;
 }
 
+/* Syntax highlighting of the PR diffs that show several files (set by js with the CSS Custom Highlight API) */
+::highlight(itw-hl-keyword) { color: #0000ff; }
+::highlight(itw-hl-string) { color: #a31515; }
+::highlight(itw-hl-comment) { color: #008000; }
+::highlight(itw-hl-number) { color: #098658; }
+::highlight(itw-hl-type) { color: #267f99; }
+::highlight(itw-hl-function) { color: #795e26; }
+::highlight(itw-hl-attr) { color: #e50000; }
+::highlight(itw-hl-key) { color: #0451a5; }
+::highlight(itw-hl-tag) { color: #800000; }
+::highlight(itw-hl-meta) { color: #af00db; }
+::highlight(itw-hl-variable) { color: #001080; }
+
 /* Home page "My dashboard" tab */
 body.itw-dashboard-active .suite-me-page-tabbar ~ :not(#itw-dashboard) {
     display: none !important;
