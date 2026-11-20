@@ -1127,7 +1127,8 @@ if (!window.__itwLoaded) {
             [/#.*/, 'comment'],
             // docstrings: a triple-quoted string alone at the start of a statement
             [/^[ \t]*[rRuU]?(?:"""[\s\S]*?(?:"""|(?![\s\S]))|'''[\s\S]*?(?:'''|(?![\s\S])))/, 'comment'],
-            [/"""[\s\S]*?(?:"""|(?![\s\S]))|'''[\s\S]*?(?:'''|(?![\s\S]))|[rbfu]*"(?:[^"\\\n]|\\.)*"|[rbfu]*'(?:[^'\\\n]|\\.)*'/, 'string'],
+            // the prefix (f, r, b, u...) is shared, so f"""...""" is not read as the empty string f"" followed by a quote
+            [/(?<![\w"'])[rRbBfFuU]{0,2}(?:"""[\s\S]*?(?:"""|(?![\s\S]))|'''[\s\S]*?(?:'''|(?![\s\S]))|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')/, 'string'],
             [/@\w+/, 'meta'],
             [NUMBER, 'number'],
             [keywordsRegex('and as assert async await break class continue def del elif else except False finally for from global if import in is lambda None nonlocal not or pass raise return self True try while with yield'), 'keyword'],
