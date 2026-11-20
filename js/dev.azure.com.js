@@ -1129,6 +1129,8 @@ if (!window.__itwLoaded) {
         ]),
         python: makeLanguage([
             [/#.*/, 'comment'],
+            // docstrings: a triple-quoted string alone at the start of a statement
+            [/^[ \t]*[rRuU]?(?:"""[\s\S]*?(?:"""|(?![\s\S]))|'''[\s\S]*?(?:'''|(?![\s\S])))/, 'comment'],
             [/"""[\s\S]*?(?:"""|(?![\s\S]))|'''[\s\S]*?(?:'''|(?![\s\S]))|[rbfu]*"(?:[^"\\\n]|\\.)*"|[rbfu]*'(?:[^'\\\n]|\\.)*'/, 'string'],
             [/@\w+/, 'meta'],
             [NUMBER, 'number'],
@@ -1162,7 +1164,7 @@ if (!window.__itwLoaded) {
     }
 
     const highlightRegistry = new Map();
-    /** Highlighted diff side (.repos-summary-diff-blocks) => { signature, ranges: [highlight, range][] } */
+    /** Highlighted diff side (the parent of its rows) => { signature, ranges: [highlight, range][] } */
     const highlightedDiffs = new Map();
 
     function getHighlight(cls) {
@@ -1191,7 +1193,8 @@ if (!window.__itwLoaded) {
             }
         }
 
-        document.querySelectorAll('.repos-summary-diff-blocks').forEach(blocks => {
+        // Each side of a changed file is a .repos-summary-diff-blocks; a new or deleted file has a single plain div
+        document.querySelectorAll('.repos-summary-diff-container > div').forEach(blocks => {
             // Cheap check that the lines did not change since the last time (diffs load and expand lazily)
             const signature = `${blocks.childElementCount}:${blocks.textContent.length}`;
             if (highlightedDiffs.get(blocks)?.signature === signature) {
