@@ -737,6 +737,66 @@ if (!window.__itwLoaded) {
         return ids.map(id => byId.get(id)).filter(x => x);
     }
 
+    const workItemTypesByProject = new Map();
+
+    /** Icon urls of the work item types of these projects, by "project|type" */
+    async function getWorkItemTypeIcons(projects) {
+        const icons = new Map();
+        await Promise.all([...new Set(projects)].map(async project => {
+            if (!workItemTypesByProject.has(project)) {
+                workItemTypesByProject.set(project, adoFetch(`/${encodeURIComponent(project)}/_apis/wit/workitemtypes?api-version=7.1`)
+                    .catch(e => {
+                        console.warn('Dashboard work item types', project, e);
+                        workItemTypesByProject.delete(project);
+                        return { value: [] };
+                    }));
+            }
+            const types = await workItemTypesByProject.get(project);
+            types.value.forEach(t => icons.set(`${project}|${t.name}`, t.icon?.url));
+        }));
+        return icons;
+    }
+
+    const projectLogoPromises = new Map();
+
+    /** The project logo is the avatar of its default team, like on the Projects tab */
+    function getProjectLogo(project) {
+        if (!projectLogoPromises.has(project)) {
+            projectLogoPromises.set(project, adoFetch(`/_apis/projects/${encodeURIComponent(project)}?api-version=7.1`)
+                .then(p => p.defaultTeam?.id
+                    ? `/${getOrg()}/_apis/GraphProfile/MemberAvatars/${p.defaultTeam.id}?overrideDisplayName=${encodeURIComponent(project)}&size=2`
+                    : null)
+                .catch(e => {
+                    console.warn('Dashboard project logo', project, e);
+                    projectLogoPromises.delete(project);
+                    return null;
+                }));
+        }
+        return projectLogoPromises.get(project);
+    }
+
+    /** What goes before the work item titles: type icons and project logos */
+    async function getTitleImages(items) {
+        const projects = [...new Set(items.map(wi => wi.fields['System.TeamProject']))];
+        const [icons, logos] = await Promise.all([
+            getWorkItemTypeIcons(projects),
+            Promise.all(projects.map(getProjectLogo)),
+        ]);
+        return { icons, logos: new Map(projects.map((p, i) => [p, logos[i]])) };
+    }
+
+    /** The title with the project logo and type icon before it, linking to the work item */
+    function workItemTitleHtml(wi, { icons, logos }) {
+        const project = wi.fields['System.TeamProject'] ?? '';
+        const type = wi.fields['System.WorkItemType'] ?? '';
+        const image = (url, cls, text) => url
+            ? `<img class="${cls}" src="${escapeHtml(url)}" alt="${escapeHtml(text)}" title="${escapeHtml(text)}">`
+            : '';
+        return image(logos.get(project), 'itw-dash-project-logo', project)
+            + image(icons.get(`${project}|${type}`), 'itw-dash-type-icon', type)
+            + `<a href="${workItemUrl(wi)}">${escapeHtml(wi.fields['System.Title'])}</a>`;
+    }
+
     const workItemUrl = wi => `/${getOrg()}/${encodeURIComponent(wi.fields['System.TeamProject'] ?? '_')}/_workitems/edit/${wi.id}`;
 
     async function loadDashboardWorkItems(body) {
@@ -749,6 +809,7 @@ if (!window.__itwLoaded) {
             });
             const ids = result.workItems.map(x => x.id);
             const allItems = await getWorkItems(ids, ['System.Id', 'System.WorkItemType', 'System.Title', 'System.State', 'System.TeamProject', 'System.ChangedDate', 'System.Parent']);
+            const titleImages = await getTitleImages(allItems);
             if (!isCurrentDashboardLoad(body, token)) {
                 return;
             }
@@ -777,10 +838,8 @@ if (!window.__itwLoaded) {
 
             const columns = [
                 { label: 'ID', html: wi => `<a href="${workItemUrl(wi)}">${wi.id}</a>` },
-                { label: 'Type', html: wi => escapeHtml(wi.fields['System.WorkItemType']) },
-                { label: 'Title', wrap: true, html: wi => `<a href="${workItemUrl(wi)}">${escapeHtml(wi.fields['System.Title'])}</a>${childrenTag(wi)}` },
+                { label: 'Title', wrap: true, html: wi => workItemTitleHtml(wi, titleImages) + childrenTag(wi) },
                 { label: 'State', html: wi => escapeHtml(wi.fields['System.State']) },
-                { label: 'Project', html: wi => escapeHtml(wi.fields['System.TeamProject']) },
                 { label: 'Changed', html: wi => formatDate(wi.fields['System.ChangedDate']) },
             ];
             const hiddenCount = allItems.length - items.length;
@@ -946,10 +1005,13 @@ if (!window.__itwLoaded) {
             // Tree and one-hop queries return relations instead of work items
             const ids = [...new Set((result.workItems ?? result.workItemRelations?.map(r => r.target) ?? []).map(x => x.id))];
             // Not useful in the narrow column
-            const hiddenFields = ['Microsoft.VSTS.Common.Priority', 'System.Parent'];
+            const hiddenFields = ['Microsoft.VSTS.Common.Priority', 'System.Parent', 'System.AssignedTo',
+                'System.AreaLevel2', 'Microsoft.VSTS.Common.StackRank', 'System.WorkItemType', 'System.TeamProject'];
             const queryColumns = result.columns.filter(c => !hiddenFields.includes(c.referenceName));
             const fields = queryColumns.map(c => c.referenceName);
-            const items = await getWorkItems(ids, [...new Set(['System.Id', 'System.TeamProject', ...fields])]);
+            // the type and title are always needed for the icon before the title
+            const items = await getWorkItems(ids, [...new Set(['System.Id', 'System.TeamProject', 'System.WorkItemType', 'System.Title', ...fields])]);
+            const titleImages = await getTitleImages(items);
             if (!isCurrentDashboardLoad(body, token)) {
                 return;
             }
@@ -958,10 +1020,11 @@ if (!window.__itwLoaded) {
                 label: c.name,
                 wrap: c.referenceName === 'System.Title' || c.referenceName === 'System.Description',
                 html: wi => {
+                    if (c.referenceName === 'System.Title') {
+                        return workItemTitleHtml(wi, titleImages);
+                    }
                     const value = escapeHtml(formatFieldValue(wi.fields[c.referenceName]));
-                    return c.referenceName === 'System.Id' || c.referenceName === 'System.Title'
-                        ? `<a href="${workItemUrl(wi)}">${value}</a>`
-                        : value;
+                    return c.referenceName === 'System.Id' ? `<a href="${workItemUrl(wi)}">${value}</a>` : value;
                 }
             }));
             const queryUrl = `/${getOrg()}/${encodeURIComponent(project)}/_queries/query/${queryId}/`;

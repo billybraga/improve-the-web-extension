@@ -320,6 +320,21 @@ body.itw-dashboard-active .suite-me-page-tabbar > :not(.bolt-tabbar-tabs, #itw-d
     color: var(--communication-foreground);
 }
 
+.itw-dash-project-logo {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    border-radius: 2px;
+    vertical-align: -3px;
+}
+
+.itw-dash-type-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    vertical-align: -2px;
+}
+
 .itw-dash-tag {
     padding: 0 6px;
     border-radius: 8px;
