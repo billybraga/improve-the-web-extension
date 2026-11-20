@@ -1038,6 +1038,7 @@ if (!window.__itwLoaded) {
 
     // ---- Syntax highlighting of the PR diffs that show several files ----
     // The single file view uses Monaco, which highlights, but the multi-file view is plain text.
+    // Like Monaco's tokenizers, only keywords, strings, comments and numbers are colored: no types or function names.
     // Colors are set with the CSS Custom Highlight API, so the page's DOM (owned by React) is not touched.
 
     // not after a dot: obj.type is a property, not the type keyword
@@ -1056,8 +1057,6 @@ if (!window.__itwLoaded) {
     const COMMENT_CONTINUATION = /^[ \t]*\*(?:[ \t].*|$)/;
     const C_STRINGS = /@"(?:[^"]|"")*"|\$?"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/;
     const NUMBER = /\b(?:0[xX][\da-fA-F_]+|\d[\d_]*(?:\.\d+)?(?:[eE][+-]?\d+)?[a-zA-Z]*)\b/;
-    const FUNCTION_CALL = /\b[A-Za-z_]\w*(?=\s*(?:<[\w\s,.<>?[\]]*>)?\()/;
-    const PASCAL_CASE = /\b[A-Z]\w*\b/;
     const HTML_RULES = [
         [/<!--[\s\S]*?(?:-->|(?![\s\S]))/, 'comment'],
         [/<\/?[A-Za-z][\w:.-]*|\/?>/, 'tag'],
@@ -1066,7 +1065,7 @@ if (!window.__itwLoaded) {
         [/&#?\w+;/, 'meta'],
     ];
 
-    const CS_KEYWORDS = keywordsRegex('abstract as async await base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach get goto if implicit in init int interface internal is lock long namespace new null object operator out override params private protected public readonly record ref required return sbyte sealed set short sizeof stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using var virtual void volatile when where while with yield nameof value');
+    const CS_KEYWORDS = keywordsRegex('abstract as async await base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach get goto if implicit in init int interface internal is lock long namespace new null object operator out override params private protected public readonly record ref required return sbyte sealed set short sizeof stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using var virtual void volatile when where while with yield nameof field partial dynamic');
     const TS_KEYWORDS = keywordsRegex('abstract any as async await boolean break case catch class const constructor continue debugger declare default delete do else enum export extends false finally for from function get if implements import in infer instanceof interface keyof let module namespace never new null number object of private protected public readonly return satisfies set static string super switch symbol this throw true try type typeof undefined unknown var void while with yield');
 
     const cLikeRules = keywords => [
@@ -1074,11 +1073,8 @@ if (!window.__itwLoaded) {
         [BLOCK_COMMENT, 'comment'],
         [COMMENT_CONTINUATION, 'comment'],
         [C_STRINGS, 'string'],
-        [/^[ \t]*#\w+.*|@\w+/, 'meta'],
         [NUMBER, 'number'],
         [keywords, 'keyword'],
-        [FUNCTION_CALL, 'function'],
-        [PASCAL_CASE, 'type'],
     ];
 
     const HIGHLIGHT_LANGUAGES = {
@@ -1135,8 +1131,6 @@ if (!window.__itwLoaded) {
             [/@\w+/, 'meta'],
             [NUMBER, 'number'],
             [keywordsRegex('and as assert async await break class continue def del elif else except False finally for from global if import in is lambda None nonlocal not or pass raise return self True try while with yield'), 'keyword'],
-            [FUNCTION_CALL, 'function'],
-            [PASCAL_CASE, 'type'],
         ]),
     };
 
