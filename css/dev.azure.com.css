@@ -94,6 +94,54 @@ ul.responsive-tags-list.work-item-grid-tags li.tag-item {
     visibility: visible !important;
 }
 
+/* Parent of the work items linked to a PR (added by js) */
+.itw-wi-parent {
+    gap: 6px;
+    min-width: 0;
+}
+.itw-wi-parent-label {
+    flex-shrink: 0;
+}
+/* one click selects the whole ID */
+.itw-wi-parent-id {
+    flex-shrink: 0;
+    user-select: all;
+    cursor: text;
+}
+.itw-wi-parent-link {
+    color: inherit !important;
+    text-decoration: none !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.itw-wi-parent-copy {
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: inherit;
+    font-size: 18px;
+    line-height: 1;
+}
+.itw-wi-parent-copy:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+.itw-wi-parent-copy:hover {
+    color: var(--communication-foreground, #0078d4);
+}
+
+/* Markdown diffs of the PR view that shows several files: wrap the long lines (the class is set by js) */
+.itw-wrap-lines .repos-summary-diff-blocks {
+    width: 100%;
+}
+.itw-wrap-lines .repos-line-content {
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere;
+}
+
 /* Syntax highlighting of the PR diffs that show several files (set by js with the CSS Custom Highlight API).
    Colors and font match the single file view (Monaco's light theme). */
 .repos-summary-diff-container .monospaced-text {

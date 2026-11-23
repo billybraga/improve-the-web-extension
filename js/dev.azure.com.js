@@ -22,6 +22,8 @@ if (!window.__itwLoaded) {
     setInterval(checkPage, 100);
     setInterval(ensureDashboardTab, 300);
     setInterval(highlightSummaryDiffs, 500);
+    setInterval(showLinkedWorkItemParents, 500);
+    setInterval(wrapMarkdownDiffs, 500);
     registerHotKeys();
 
     function checkPage() {
@@ -1033,6 +1035,157 @@ if (!window.__itwLoaded) {
                 ${renderTable(columns, items, 'The query returned no work item')}`);
         } catch (e) {
             showDashboardError(body, e);
+        }
+    }
+
+    // ---- Parent of the work items linked to a PR ----
+    // Shows the parent (e.g. the user story of a task) under each linked work item, with a button to copy its ID.
+
+    const workItemParents = new Map(); // id -> promise of { id, type, title, url } or null
+
+    function getWorkItemParent(id) {
+        if (!workItemParents.has(id)) {
+            workItemParents.set(id, (async () => {
+                const item = await adoFetch(`/_apis/wit/workitems/${id}?fields=System.Parent&api-version=7.1`);
+                const parentId = item.fields?.['System.Parent'];
+                if (!parentId) {
+                    return null;
+                }
+                const parent = await adoFetch(`/_apis/wit/workitems/${parentId}?fields=System.WorkItemType,System.Title,System.TeamProject&api-version=7.1`);
+                return {
+                    id: parentId,
+                    type: parent.fields['System.WorkItemType'],
+                    title: parent.fields['System.Title'],
+                    url: `/${getOrg()}/${encodeURIComponent(parent.fields['System.TeamProject'])}/_workitems/edit/${parentId}/`,
+                };
+            })().catch(e => {
+                workItemParents.delete(id); // retried on a later tick
+                throw e;
+            }));
+        }
+        return workItemParents.get(id);
+    }
+
+    function showLinkedWorkItemParents() {
+        for (const link of document.querySelectorAll('.linked-wit-pr-details a[href*="/_workitems/edit/"]:not(.itw-wi-parent-link)')) {
+            const id = link.getAttribute('href').match(/_workitems\/edit\/(\d+)/)?.[1];
+            const cell = link.closest('.bolt-table-cell-content');
+            if (!id || !cell || cell.dataset.itwParentOf === id) {
+                continue;
+            }
+            cell.dataset.itwParentOf = id; // the row can be reused by React for another work item
+            cell.querySelector('.itw-wi-parent')?.remove();
+            getWorkItemParent(id).then(parent => {
+                if (!parent || cell.dataset.itwParentOf !== id || cell.querySelector('.itw-wi-parent')) {
+                    return;
+                }
+                const line = document.createElement('div');
+                line.className = 'itw-wi-parent bolt-table-two-line-cell-item flex-row flex-center secondary-text';
+                line.innerHTML = `<span class="itw-wi-parent-label">${escapeHtml(parent.type)}</span>
+                    <span class="itw-wi-parent-id" title="Click to select">${parent.id}</span>
+                    <button type="button" class="itw-wi-parent-copy" title="Copy ${parent.id}">⧉</button>
+                    <a class="itw-wi-parent-link" href="${parent.url}" title="${escapeHtml(parent.title)}">${escapeHtml(parent.title)}</a>`;
+                // the row opens the work item on click: keep the mouse for selecting the ID, the link and the button
+                for (const type of ['click', 'mousedown', 'mouseup', 'pointerdown', 'pointerup', 'keydown']) {
+                    line.addEventListener(type, e => e.stopPropagation());
+                }
+                const button = line.querySelector('button');
+                button.addEventListener('click', async () => {
+                    await navigator.clipboard.writeText(String(parent.id));
+                    button.textContent = '✓';
+                    setTimeout(() => button.textContent = '⧉', 1500);
+                });
+                cell.appendChild(line);
+            }, e => console.warn('itw: parent of work item', id, e));
+        }
+    }
+
+    // ---- Line wrapping of the Markdown diffs in the PR view that shows several files ----
+    // Prose has long lines. They are wrapped (css: .itw-wrap-lines), and in the side-by-side view
+    // the rows of both sides get the same height, so the lines stay facing each other.
+
+    function wrapMarkdownDiffs() {
+        for (const card of document.querySelectorAll('.repos-summary-header')) {
+            const sides = [...card.querySelectorAll('.repos-summary-diff-container')];
+            if (!sides.length) {
+                continue;
+            }
+            const path = card.querySelector('.text-ellipsis.margin-right-4 > .secondary-text')?.textContent ?? '';
+            if (!/\.(md|markdown)$/i.test(path.trim())) {
+                continue;
+            }
+            card.classList.add('itw-wrap-lines');
+            if (sides.length !== 2) {
+                continue;
+            }
+            const rows = sides.map(side => [...side.querySelectorAll('.repos-diff-contents-row')]);
+            // Cheap check that nothing changed since the last time: the widths (window or splitter resized) and the lines
+            const signature = `${sides.map(side => side.clientWidth).join()}:${rows[0].length}:${rows[1].length}:${card.textContent.length}`;
+            if (card.__itwWrapSignature === signature) {
+                continue;
+            }
+            card.__itwWrapSignature = signature;
+            alignDiffSides(rows);
+        }
+    }
+
+    /**
+     * The rows of both sides don't match one to one: a filler row can stand for several lines of the other side.
+     * The unchanged lines and the "..." rows face each other in order (the anchors). Between two anchors, the
+     * changed lines of each side (a hunk) must take the same height: the shorter hunk gets the difference.
+     */
+    function alignDiffSides(rows) {
+        rows.flat().forEach(row => row.style.height = '');
+        const isAnchor = row => {
+            const line = row.querySelector('.repos-line-content');
+            return !line || line.classList.contains('unchanged') || line.classList.contains('v-align-middle');
+        };
+        // [hunk 0, anchor 0, hunk 1, anchor 1, ..., last hunk], each hunk a list of rows
+        const split = sideRows => {
+            const anchors = [];
+            const hunks = [[]];
+            for (const row of sideRows) {
+                if (isAnchor(row)) {
+                    anchors.push(row);
+                    hunks.push([]);
+                } else {
+                    hunks[hunks.length - 1].push(row);
+                }
+            }
+            return { anchors, hunks };
+        };
+        const [left, right] = rows.map(split);
+        if (left.anchors.length !== right.anchors.length) {
+            return;
+        }
+
+        const heights = new Map(rows.flat().map(row => [row, row.getBoundingClientRect().height]));
+        const targets = new Map(heights);
+        const sumOf = hunk => hunk.reduce((sum, row) => sum + heights.get(row), 0);
+
+        left.anchors.forEach((row, i) => {
+            const height = Math.max(heights.get(row), heights.get(right.anchors[i]));
+            targets.set(row, height);
+            targets.set(right.anchors[i], height);
+        });
+        left.hunks.forEach((leftHunk, i) => {
+            const rightHunk = right.hunks[i];
+            const difference = sumOf(leftHunk) - sumOf(rightHunk);
+            if (Math.abs(difference) < 0.5) {
+                return;
+            }
+            const [shorter, side] = difference > 0 ? [rightHunk, right] : [leftHunk, left];
+            // an empty hunk: the anchor above it takes the space (or the one below for the first hunk)
+            const row = shorter[shorter.length - 1] ?? side.anchors[i - 1] ?? side.anchors[i];
+            if (row) {
+                targets.set(row, targets.get(row) + Math.abs(difference));
+            }
+        });
+
+        for (const [row, height] of targets) {
+            if (height > heights.get(row) + 0.5) {
+                row.style.height = `${height}px`;
+            }
         }
     }
 
