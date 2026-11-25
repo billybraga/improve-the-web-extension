@@ -7,9 +7,19 @@ body {
     left: calc((100vw - 1016px) / 2) !important;
 }
 
-/* AI Mode follow-up input box */
+/* AI Mode follow-up input box: same left and right edges as the grid of the answers (CSS anchor positioning).
+   Both are grids whose first column depends on their width, and Google also adds the sidebar width as padding,
+   so only the same box gives the same columns: the input stays under the answer, sidebar open or not. */
+.WzWwpc {
+    anchor-name: --itw-aim-grid;
+}
+
 .y4VEUd:not(.AkYNS) {
-    left: calc((100vw - 1016px) / 2) !important;
+    left: anchor(--itw-aim-grid left, calc((100vw - 1016px) / 2)) !important;
+    right: anchor(--itw-aim-grid right, 0px) !important;
+    width: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 
 g-scrolling-carousel [role=tablist] {
