@@ -718,3 +718,13 @@ body.itw-dashboard-active .suite-me-page-tabbar > :not(.bolt-tabbar-tabs, #itw-d
         display: none;
     }
 }
+
+/* Dashboard: the IDs are not links (only the titles), so they can be selected; one click selects the whole ID */
+.itw-dash-id {
+    user-select: all;
+}
+
+/* The area at the right of the centered column acts as the page's scrollbar (js): show the scrollbar while it's hovered */
+.custom-scrollbar.itw-gutter-hover {
+    scrollbar-color: rgba(0, 0, 0, 0.45) transparent !important;
+}

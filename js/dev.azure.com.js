@@ -24,6 +24,7 @@ if (!window.__itwLoaded) {
     setInterval(highlightSummaryDiffs, 500);
     setInterval(showLinkedWorkItemParents, 500);
     setInterval(wrapMarkdownDiffs, 500);
+    registerScrollGutter();
     registerHotKeys();
 
     function checkPage() {
@@ -709,7 +710,7 @@ if (!window.__itwLoaded) {
                 return target === 'main' || target === 'master' ? '' : ` <span class="itw-dash-tag">→ ${escapeHtml(target)}</span>`;
             };
             const columns = showAuthor => [
-                { label: 'ID', html: pr => `<a href="${prUrl(pr)}">${pr.pullRequestId}</a>` },
+                { label: 'ID', html: pr => `<span class="itw-dash-id">${pr.pullRequestId}</span>` },
                 { label: 'Title', wrap: true, html: pr => `<a href="${prUrl(pr)}">${escapeHtml(pr.title)}</a>${pr.isDraft ? ' <span class="itw-dash-tag">Draft</span>' : ''}${pr.autoCompleteSetBy ? ' <span class="itw-dash-tag">Auto-complete</span>' : ''}${targetTag(pr)}` },
                 ...(showAuthor ? [{ label: 'Author', html: pr => escapeHtml(pr.createdBy.displayName) }] : []),
                 { label: 'Repository', html: pr => `<span title="${escapeHtml(pr.repository.project.name)}">${escapeHtml(pr.repository.name)}</span>` },
@@ -840,7 +841,7 @@ if (!window.__itwLoaded) {
             };
 
             const columns = [
-                { label: 'ID', html: wi => `<a href="${workItemUrl(wi)}">${wi.id}</a>` },
+                { label: 'ID', html: wi => `<span class="itw-dash-id">${wi.id}</span>` },
                 { label: 'Title', wrap: true, html: wi => workItemTitleHtml(wi, titleImages) + childrenTag(wi) },
                 { label: 'State', html: wi => escapeHtml(wi.fields['System.State']) },
                 { label: 'Changed', html: wi => formatDate(wi.fields['System.ChangedDate']) },
@@ -1007,10 +1008,13 @@ if (!window.__itwLoaded) {
             const result = await adoFetch(`/${encodeURIComponent(project)}/_apis/wit/wiql/${queryId}?api-version=7.1&$top=500`);
             // Tree and one-hop queries return relations instead of work items
             const ids = [...new Set((result.workItems ?? result.workItemRelations?.map(r => r.target) ?? []).map(x => x.id))];
-            // Not useful in the narrow column
+            // Not useful in the narrow column (the priority is always added as the last column)
             const hiddenFields = ['Microsoft.VSTS.Common.Priority', 'System.Parent', 'System.AssignedTo',
                 'System.AreaLevel2', 'Microsoft.VSTS.Common.StackRank', 'System.WorkItemType', 'System.TeamProject'];
-            const queryColumns = result.columns.filter(c => !hiddenFields.includes(c.referenceName));
+            const queryColumns = [
+                ...result.columns.filter(c => !hiddenFields.includes(c.referenceName)),
+                { referenceName: 'Microsoft.VSTS.Common.Priority', name: 'Priority' },
+            ];
             const fields = queryColumns.map(c => c.referenceName);
             // the type and title are always needed for the icon before the title
             const items = await getWorkItems(ids, [...new Set(['System.Id', 'System.TeamProject', 'System.WorkItemType', 'System.Title', ...fields])]);
@@ -1027,7 +1031,7 @@ if (!window.__itwLoaded) {
                         return workItemTitleHtml(wi, titleImages);
                     }
                     const value = escapeHtml(formatFieldValue(wi.fields[c.referenceName]));
-                    return c.referenceName === 'System.Id' ? `<a href="${workItemUrl(wi)}">${value}</a>` : value;
+                    return c.referenceName === 'System.Id' ? `<span class="itw-dash-id">${value}</span>` : value;
                 }
             }));
             const queryUrl = `/${getOrg()}/${encodeURIComponent(project)}/_queries/query/${queryId}/`;
@@ -1098,6 +1102,67 @@ if (!window.__itwLoaded) {
                 cell.appendChild(line);
             }, e => console.warn('itw: parent of work item', id, e));
         }
+    }
+
+    // ---- Scrollbar of the pages shown in the centered column (css: normal width) ----
+    // The page's scrollbar is at the right of the column, not at the edge of the screen. Grabbing just right of it
+    // (or anywhere in the empty area at the right) started a text selection that auto-scrolls, so it looked like
+    // a scrollbar drag that also selected text. That area now acts as the scrollbar: highlighted on hover, dragged like the thumb.
+
+    function getGutterScroller(x, y, target) {
+        const column = document.querySelector('.full-size.region-page > .flex-column.full-size.vertical-layout');
+        if (!column || (target !== column && !target.matches?.('.full-size.region-page'))) {
+            return null;
+        }
+        const columnRect = column.getBoundingClientRect();
+        if (x < columnRect.right - 2 || columnRect.right > window.innerWidth - 20) {
+            return null; // not in the area at the right, or the column takes the full width
+        }
+        let best = null;
+        for (const element of column.querySelectorAll('.custom-scrollbar')) {
+            const rect = element.getBoundingClientRect();
+            if (element.scrollHeight > element.clientHeight + 1 && rect.right >= columnRect.right - 3
+                && y >= rect.top && y <= rect.bottom && (!best || element.clientHeight > best.clientHeight)) {
+                best = element;
+            }
+        }
+        return best;
+    }
+
+    function registerScrollGutter() {
+        let hovered = null;
+        document.addEventListener('mousemove', e => {
+            const scroller = e.buttons ? hovered : getGutterScroller(e.clientX, e.clientY, e.target);
+            if (scroller !== hovered) {
+                hovered?.classList.remove('itw-gutter-hover');
+                scroller?.classList.add('itw-gutter-hover');
+                hovered = scroller;
+            }
+        }, true);
+
+        document.addEventListener('mousedown', e => {
+            if (e.button !== 0) {
+                return;
+            }
+            const scroller = getGutterScroller(e.clientX, e.clientY, e.target);
+            if (!scroller) {
+                return;
+            }
+            e.preventDefault(); // no text selection
+            const startY = e.clientY;
+            const startTop = scroller.scrollTop;
+            // like the thumb: moving the mouse by the track height scrolls the whole content
+            const ratio = scroller.scrollHeight / scroller.clientHeight;
+            const onMove = moveEvent => {
+                scroller.scrollTop = startTop + (moveEvent.clientY - startY) * ratio;
+            };
+            const onUp = () => {
+                document.removeEventListener('mousemove', onMove, true);
+                document.removeEventListener('mouseup', onUp, true);
+            };
+            document.addEventListener('mousemove', onMove, true);
+            document.addEventListener('mouseup', onUp, true);
+        }, true);
     }
 
     // ---- Line wrapping of the Markdown diffs in the PR view that shows several files ----
